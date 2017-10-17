@@ -31,13 +31,13 @@ public class Benchly {
 			List<ModuleProfile> profiles = modules.values().stream().map((Module m) -> new ModuleProfile(m))
 					.collect(Collectors.toList());
 
+			response.type("application/json");
 			if (profiles == null || profiles.isEmpty()) {
 				LOGGER.error("No modules could be loaded.");
 				return null;
 			} else {
 				return profiles;
 			}
-
 		}, GSON::toJson);
 
 	}

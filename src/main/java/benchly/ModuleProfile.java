@@ -1,10 +1,10 @@
 package benchly;
 
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import modules.InputPort;
 import modules.Module;
 import modules.Port;
 
@@ -12,29 +12,51 @@ public class ModuleProfile {
 
 	String name;
 	
+	String canonicalClassName;
+	
 	String description;
 	
-	Map<String, String> inputPorts;
+	String category;
 	
-	Map<String, String> outputPorts;
+	Map<String, String> propertyDescriptions;
+	
+	List<PortProfile> inputPorts;
+	
+	List<PortProfile> outputPorts;
+	
+	class PortProfile {
+		
+		String name;
+		
+		String description;
+		
+		Set<String> supportedPipes;
+		
+		PortProfile(Port port) {
+			this.name = port.getName();
+			this.description = port.getDescription();
+			
+			this.supportedPipes = port.getSupportedPipeClasses().values().stream()
+					.map((Class<?> c) -> c.getName())
+					.collect(Collectors.toSet());
+		}
+		
+	}
 	
 	public ModuleProfile(Module module) {
 		this.name = module.getName();
+		// TODO: The way to get a canonical class name should be standardised in Module
+		this.canonicalClassName = module.getClass().getName();
 		this.description = module.getDescription();
+		this.category = module.getCategory();
+		this.propertyDescriptions = module.getPropertyDescriptions();
 		
-		this.inputPorts = portDescriptionsFromPorts(module.getInputPorts().values());
-		this.outputPorts = portDescriptionsFromPorts(module.getOutputPorts().values());
-	}
-	
-	// build a number of port descriptions from prot objects
-	private static Map<String, String> portDescriptionsFromPorts(Collection<? extends Port> ports) {
-		Map<String, String> result = new HashMap<>();
-		
-		for (Port port : ports) {
-			result.put(port.getName(), port.getDescription());
-		}
-	
-		return result;
+		this.inputPorts = module.getInputPorts().values().stream()
+				.map((Port p) -> new PortProfile(p))
+				.collect(Collectors.toList());
+		this.outputPorts = module.getOutputPorts().values().stream()
+				.map((Port p) -> new PortProfile(p))
+				.collect(Collectors.toList());
 	}
 	
 }
