@@ -20,6 +20,8 @@ public class ModuleProfile {
 	
 	Map<String, String> propertyDescriptions;
 	
+	Map<String, String> propertyDefaultValues;
+	
 	List<PortProfile> inputPorts;
 	
 	List<PortProfile> outputPorts;
@@ -50,6 +52,7 @@ public class ModuleProfile {
 		this.description = module.getDescription();
 		this.category = module.getCategory();
 		this.propertyDescriptions = module.getPropertyDescriptions();
+		this.propertyDefaultValues = module.getPropertyDefaultValues();
 		
 		this.inputPorts = module.getInputPorts().values().stream()
 				.map((Port p) -> new PortProfile(p))
