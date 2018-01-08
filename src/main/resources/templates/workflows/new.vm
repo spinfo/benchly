@@ -1,0 +1,14 @@
+#parse("/templates/layout.vm")
+#@mainLayout()
+
+<h2>New Workflow</h2>
+
+<form name="new-workflow" action="$WebPath.getWorkflows()" method="post" accept-charset="utf-8">
+    <input class="smooth" type="text" name="workflow[name]" placeholder="Name" required>
+
+    <textarea class="smooth" type="text" name="workflow[definition]" placeholder="Definition as JSON"></textarea>
+
+    <input class="smooth" type="submit" value="Save">
+</form>
+
+#end

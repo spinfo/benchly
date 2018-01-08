@@ -1,0 +1,60 @@
+#parse("/templates/layout.vm")
+#@mainLayout()
+
+<h2>Workflows</h2>
+
+<div>
+    <a href="$WebPath.getNewWorkflow()">New Workflow</a>
+</div>
+
+<div>
+#if($paginationLinksBuilder.getMaxPage() > 1)
+#foreach($i in [1..$paginationLinksBuilder.getMaxPage()])
+    #set($target = $paginationLinksBuilder.getLinkTarget($i))
+
+    #if( $i == $paginationLinksBuilder.getCurrentPage() )
+        $i
+    #else
+        <a href="$target">$i</a>
+    #end
+
+    #if( !($i == $paginationLinksBuilder.getMaxPage()) )
+        |
+    #end
+#end
+#end
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Author</th>
+            <th><!-- Edit --></th>
+            <th><!-- Delete --></th>
+        </tr>
+    </thead>
+    <tbody>
+    #foreach($workflow in $workflows)
+        <tr>
+            <td>
+                $workflow.getId() ($workflow.getVersionId())
+            </td>
+            <td>
+                <a href="$WebPath.getShowWorkflow($workflow)">$workflow.getName()</a>
+            </td>
+            <td>
+                $workflow.getAuthor().getName()
+            </td>
+            <td>
+                <a href="$WebPath.getEditWorkflow($workflow)">Edit</a>
+            </td>
+            <td>
+                <a href="$WebPath.getDeleteWorkflow($workflow)">Delete</a>
+            </td>
+        </tr>
+    #end
+    </tbody>
+</table>
+#end

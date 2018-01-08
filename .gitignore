@@ -76,3 +76,9 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
+
+# mvn build folder
+target/
+
+# eclipse project file
+.project

@@ -1,0 +1,6 @@
+#parse("/templates/layout.vm")
+#@mainLayout()
+
+<p>This operation is not permitted.</p>
+
+#end

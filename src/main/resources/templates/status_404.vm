@@ -1,0 +1,31 @@
+#parse("/templates/layout.vm")
+#@mainLayout()
+
+<p>Sorry, we didn't find what you were looking for :(</p>
+
+<ul>
+
+    <li>
+        Headers:
+        <pre>
+        $request.headers()
+        </pre>
+    </li>
+
+    <li>
+        Route Params:
+        <pre>
+        $request.params()
+        </pre>
+    </li>
+
+    <li>
+        Query Params:
+        <pre>
+        $request.queryParams()
+        </pre>
+    </li>
+</ul>
+
+
+#end

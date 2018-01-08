@@ -1,0 +1,28 @@
+#parse("/templates/layout.vm")
+#parse("/templates/workflows/macro_show.vm")
+#@mainLayout()
+
+<h2>Workflow: $workflow.getName()</h2>
+
+<div>
+<a href="$WebPath.getEditWorkflow($workflow)">Edit</a> |
+<a href="$WebPath.getDeleteWorkflow($workflow)">Delete</a>
+</div>
+
+#show_workflow($workflow)
+
+#if( $versions && !$versions.isEmpty() )
+<h3>Versions</h3>
+<ul>
+    #foreach( $version in $versions )
+        <li>
+            <a href="$WebPath.getShowWorkflowVersion($version)">$version.getCreatedAtReadable()</a> by <a href="#">$version.getAuthor().getName()</a>
+        #if( $version.isLatestVersion() )
+            (this version)
+        #end
+        </li>
+    #end
+</ul>
+#end
+
+#end

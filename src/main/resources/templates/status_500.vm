@@ -1,0 +1,6 @@
+#parse("/templates/layout.vm")
+#@mainLayout()
+
+<p>Sorry, something went wrong :(</p>
+
+#end

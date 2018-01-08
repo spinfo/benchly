@@ -1,0 +1,69 @@
+#macro(mainLayout)
+<!doctype html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    ## CSS
+    <link rel="stylesheet" href="/mincss.min.css">
+    <link rel="stylesheet" href="/styles.css">
+
+    <title>
+        ## $msg.get("COMMON_TITLE")
+        The Benchly
+    </title>
+</head>
+<body>
+<header>
+    <nav class="nav">
+        <div class="container">
+            <a class="pagename current" href="/">Benchly</a>
+            <a href="#">Build</a>
+            <a href="$WebPath.getWorkflows()">Workflows</a>
+            <a href="#">Resources</a>
+            <a href="#">Manage</a>
+            |&nbsp;&nbsp;
+            #if($user)
+                <a href="#">$user.getName()</a>
+                <a href="$WebPath.getLogout()">(Logout)</a>
+            #else
+                <a href="$WebPath.getLogin()">Login</a>
+            #end
+        </div>
+    </nav>
+##        <a href="$WebPath.getINDEX()"><img id="logo" src="/img/logo.png" alt="Spark Library"></a>
+##        <ul id="menu">
+##            <li><a href="$WebPath.getBOOKS()">$msg.get("COMMON_NAV_ALLBOOKS")</a></li>
+##            #if($currentUser)
+##                <li>
+##                    <form method="post" action="$WebPath.getLOGOUT()">
+##                        <button id="logout">$msg.get("COMMON_NAV_LOGOUT")</button>
+##                    </form>
+##                </li>
+##            #else
+##                <li><a href="$WebPath.getLOGIN()"">$msg.get("COMMON_NAV_LOGIN")</a></li>
+##            #end
+##        </ul>
+    </nav>
+</header>
+<main class="container">
+    <div>
+        #foreach($message in $userMessages.getMessages())
+            #set($messageClass = $message.getType().name().toLowerCase())
+            <div class="msg $messageClass">
+                $message.getText()
+            </div>
+        #end
+    </div>
+
+
+    <div id="content">
+        $bodyContent
+    </div>
+</main>
+<footer>
+    ## $msg.get("COMMON_FOOTER_TEXT")
+</footer>
+</body>
+</html>
+#end

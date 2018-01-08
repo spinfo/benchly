@@ -1,0 +1,26 @@
+
+#content {
+    margin-top: 1.5em;
+}
+
+/* User Messages */
+.msg {
+    width: 80%;
+    margin: 1.5em 0 1.5em;
+}
+
+.ok {
+    border-color: #2d2;
+    background: #dfd;
+}
+.warn {
+    border-color: #f0ad4e;
+    background: #faebcc; /* fcf8e3 */
+}
+.info {
+    /* use standard */
+}
+.error {
+    border-color: #e44;
+    background: #fdd
+}
