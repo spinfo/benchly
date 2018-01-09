@@ -5,8 +5,9 @@
 <h2>Workflow: $workflow.getName()</h2>
 
 <div>
-<a href="$WebPath.getEditWorkflow($workflow)">Edit</a> |
-<a href="$WebPath.getDeleteWorkflow($workflow)">Delete</a>
+    <a href="$WebPath.getEditWorkflow($workflow)">Edit</a> |
+    <a href="$WebPath.getDeleteWorkflow($workflow)">Delete</a> |
+    <a href="$WebPath.getNewJob($workflow)">Start a new job</a>
 </div>
 
 #show_workflow($workflow)

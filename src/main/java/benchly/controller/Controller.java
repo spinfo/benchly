@@ -12,13 +12,13 @@ import benchly.util.SessionUtil;
 import benchly.util.Views;
 import spark.Request;
 
-public class Controller {
+public abstract class Controller {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 
-	static void ensureRowCountIsOne(int rowCount, String verb) throws InternalServerError {
-		if (rowCount != 1) {
-			throw new InternalServerError("Wrong row count on workflow " + verb + ": " + rowCount);
+	static void ensureRowCountIsOne(long rowsCreated, String verb) throws InternalServerError {
+		if (rowsCreated != 1) {
+			throw new InternalServerError("Wrong row count on workflow " + verb + ": " + rowsCreated);
 		}
 	}
 

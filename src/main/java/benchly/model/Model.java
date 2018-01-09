@@ -1,5 +1,7 @@
 package benchly.model;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -94,9 +96,9 @@ public abstract class Model {
 				// actually set the value parsing it dependent on the field's class
 				if (targetClass == String.class) {
 					field.set(result, valueToSet);
-				} else if (targetClass == Long.class) {
+				} else if (targetClass == Long.class || targetClass == Long.TYPE) {
 					field.set(result, Long.parseLong(valueToSet));
-				} else if (targetClass == Integer.class) {
+				} else if (targetClass == Integer.class || targetClass == Integer.TYPE) {
 					field.set(result, Integer.parseInt(valueToSet));
 				} else {
 					LOG.warn("Unrecognized class for field '" + fieldName + "': " + targetClass.getName());

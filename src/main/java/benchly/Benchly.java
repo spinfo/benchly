@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 
 import base.workbench.ModuleWorkbenchController;
 import benchly.controller.IndexController;
+import benchly.controller.JobController;
 import benchly.controller.UserController;
 import benchly.controller.WorkflowController;
 import benchly.error.Handlers;
@@ -40,6 +41,10 @@ public class Benchly {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 	public static void main(String[] args) {
+
+		// start a single JobQueue responsible for starting jobs
+		Thread jobQueueThread = new Thread(new JobQueue());
+		jobQueueThread.start();
 
 		// let spark serve the folder: src/main/resources/public
 		// TODO: Set caching policies for this
@@ -66,6 +71,10 @@ public class Benchly {
 		post(Path.Web.UPDATE_WORKFLOW, WorkflowController.update);
 		post(Path.Web.DESTROY_WORKFLOW, WorkflowController.destroy);
 
+		get(Path.Web.NEW_JOB, JobController.newJob);
+		get(Path.Web.SHOW_JOB, JobController.show);
+		post(Path.Web.JOBS, JobController.create);
+
 		get(Path.Web.LOGIN, UserController.showLogin);
 		post(Path.Web.LOGIN, UserController.login);
 		get(Path.Web.LOGOUT, UserController.logout);
@@ -86,7 +95,7 @@ public class Benchly {
 				return profiles;
 			}
 		}, GSON::toJson);
-		
+
 		// after a page visit that location is logged in the session
 		after("*", Filters.markGetRequestLocationInSession);
 

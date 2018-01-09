@@ -1,0 +1,18 @@
+#parse("/templates/layout.vm")
+#@mainLayout()
+
+<h2>Job #$job.getId()</h2>
+
+<div>
+<a href="#">Cancel Job</a>
+</div>
+
+<ul>
+    <li>workflow: $job.getWorkflow().getName()</li>
+    <li>Time processed: $job.getTimeProcessing()</li>
+    <li>Time estimated: $job.getEstimatedTime()</li>
+    <li>Output size: $job.getCurrentOutputSize()</li>
+    <li>Estimated output size: $job.getEstimatedOutputSize()</li>
+</ul>
+
+#end

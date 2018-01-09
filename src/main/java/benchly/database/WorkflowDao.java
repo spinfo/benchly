@@ -23,8 +23,8 @@ public class WorkflowDao {
 		return dao().queryBuilder().where().eq("latestVersion", true).countOf();
 	}
 
-	public static Workflow fetchById(long id) {
-		return queryForFirstWhereEq("id", id);
+	public static Workflow fetchById(long workflowId) throws SQLException {
+		return dao().queryForId(workflowId);
 	}
 
 	public static Workflow fetchLatestVersion(String versionId) throws SQLException {
@@ -74,16 +74,6 @@ public class WorkflowDao {
 		DeleteBuilder<Workflow, Long> delete = dao().deleteBuilder();
 		delete.where().eq("versionId", workflow.getVersionId());
 		return delete.delete();
-	}
-
-	private static Workflow queryForFirstWhereEq(String attribute, Object value) {
-		try {
-			return dao().queryForFirst(dao().queryBuilder().where().eq(attribute, value).prepare());
-		} catch (SQLException e) {
-			e.printStackTrace();
-			LOG.error(e.getMessage());
-			return null;
-		}
 	}
 
 	private static Dao<Workflow, Long> dao() {

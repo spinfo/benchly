@@ -11,11 +11,14 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
+import benchly.model.Job;
 import benchly.model.User;
 import benchly.model.Workflow;
 
 /**
  * A singleton class providing access to the sqlite database.
+ * 
+ * TODO: Does this need a close() or exit() method?...
  */
 class DatabaseHelper {
 	
@@ -35,6 +38,7 @@ class DatabaseHelper {
 
 	private Dao<Workflow, Long> workflowDao = null;
 	private Dao<User, Long> userDao = null;
+	private Dao<Job, Long> jobDao = null;
 	
 	private ConnectionSource connectionSource;
 
@@ -49,33 +53,43 @@ class DatabaseHelper {
 		}
 	}
 	
-	public static DatabaseHelper getInstance() {
+	static DatabaseHelper getInstance() {
 		if (DatabaseHelper.instance == null) {
 			instance = new DatabaseHelper("jdbc:sqlite:/tmp/benchly.db");
 		}
 		return instance;
 	}
 
-	public Dao<Workflow, Long> getWorkflowDao() {
+	protected Dao<Workflow, Long> getWorkflowDao() {
 		if (this.workflowDao == null) {
 			this.workflowDao = this.getMyDaoRuntimeExcept(connectionSource, Workflow.class);
 		}
 		return this.workflowDao;
 	}
 	
-	public Dao<User, Long> getUserDao() {
+	protected Dao<User, Long> getUserDao() {
 		if (this.userDao == null) {
 			this.userDao = this.getMyDaoRuntimeExcept(connectionSource, User.class);
 		}
 		return this.userDao;
 	}
 	
+	protected Dao<Job, Long> getJobDao() {
+		if (this.jobDao == null) {
+			this.jobDao = this.getMyDaoRuntimeExcept(connectionSource, Job.class);
+		}
+		return this.jobDao;
+	}
+	
+	
 	private void setupTables(final ConnectionSource connectionSource) throws SQLException {
-		// TODO: Remove next two lines
+		// TODO: Remove next three lines
 		TableUtils.dropTable(connectionSource, User.class, true);
 		TableUtils.dropTable(connectionSource, Workflow.class, true);
+		TableUtils.dropTable(connectionSource, Job.class, true);
 		TableUtils.createTableIfNotExists(connectionSource, Workflow.class);
 		TableUtils.createTableIfNotExists(connectionSource, User.class);
+		TableUtils.createTableIfNotExists(connectionSource, Job.class);
 		
 		// Test stuff, TODO: Remove
 		TableUtils.clearTable(connectionSource, User.class);
