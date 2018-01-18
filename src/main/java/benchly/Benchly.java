@@ -8,9 +8,6 @@ import static spark.Spark.post;
 import static spark.Spark.staticFiles;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.config.IniSecurityManagerFactory;
@@ -18,10 +15,6 @@ import org.apache.shiro.mgt.SecurityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import base.workbench.ModuleWorkbenchController;
 import benchly.controller.IndexController;
 import benchly.controller.JobController;
 import benchly.controller.UserController;
@@ -32,13 +25,10 @@ import benchly.error.InvalidModelException;
 import benchly.error.ResourceNotFoundError;
 import benchly.util.Filters;
 import benchly.util.Path;
-import modules.Module;
 
 public class Benchly {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Benchly.class);
-
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
 	public static void main(String[] args) {
 
@@ -79,23 +69,6 @@ public class Benchly {
 		post(Path.Web.LOGIN, UserController.login);
 		get(Path.Web.LOGOUT, UserController.logout);
 
-		get("modules", "application/json", (request, response) -> {
-
-			ModuleWorkbenchController controller = new ModuleWorkbenchController();
-			Map<String, Module> modules = controller.getAvailableModules();
-
-			List<ModuleProfile> profiles = modules.values().stream().map((Module m) -> new ModuleProfile(m))
-					.collect(Collectors.toList());
-
-			response.type("application/json");
-			if (profiles == null || profiles.isEmpty()) {
-				LOG.error("No modules could be loaded.");
-				return null;
-			} else {
-				return profiles;
-			}
-		}, GSON::toJson);
-
 		// after a page visit that location is logged in the session
 		after("*", Filters.markGetRequestLocationInSession);
 
@@ -105,6 +78,8 @@ public class Benchly {
 		exception(InternalServerError.class, Handlers.internalError);
 		exception(InvalidModelException.class, Handlers.invalidModel);
 		exception(SQLException.class, Handlers.sqlException);
+
+		LOG.debug("Startup finished.");
 	}
 
 }

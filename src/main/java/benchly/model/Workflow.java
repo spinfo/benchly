@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 

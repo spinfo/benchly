@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
