@@ -27,10 +27,11 @@ class DatabaseHelper {
 			new User("alice", "alice@example.com", "secret")
 	};
 	
-	private static final Workflow[] workflows = new Workflow[4];
+	private static int nWorkflows = 101;
+	private static final Workflow[] workflows = new Workflow[nWorkflows];
 	static {
-		for (int i = 1; i <= 4; i++) {
-			workflows[i-1] = new Workflow("test-name" + i, "{ testdefinition: " + i + " }", users[0]);
+		for (int i = 1; i <= nWorkflows; i++) {
+			workflows[i-1] = new Workflow("test-name" + i, "[]", users[0]);
 		}
 	}
 

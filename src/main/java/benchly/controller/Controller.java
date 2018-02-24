@@ -7,12 +7,11 @@ import org.slf4j.LoggerFactory;
 
 import benchly.error.InternalServerError;
 import benchly.model.User;
-import benchly.util.Path;
 import benchly.util.SessionUtil;
-import benchly.util.Views;
 import spark.Request;
+import spark.Route;
 
-public abstract class Controller {
+abstract class Controller {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 
@@ -27,9 +26,17 @@ public abstract class Controller {
 		LOG.debug("Got user from session: " + user);
 		if (user == null) {
 			SessionUtil.addErrorMessage(request, errorMessage);
-			halt(403, Views.render(request, Views.newContext(), Path.Template.STATUS_403));
+			halt(403, JsonTransformer.renderWithoutContent(request));
 		}
 		return user;
 	}
+
+	/**
+	 * This is a route that cen be used if no special content is returned besides
+	 * those objects contained in any response.
+	 */
+	static Route emptyRoute = (request, response) -> {
+		return JsonTransformer.renderWithoutContent(request);
+	};
 
 }

@@ -1,11 +1,14 @@
 package benchly.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import benchly.model.User;
-import benchly.util.UserMessages.Type;
-import io.mikael.urlbuilder.UrlBuilder;
+import benchly.model.UserMessage;
+import benchly.model.UserMessage.Type;
 import spark.Request;
 
 public class SessionUtil {
@@ -24,24 +27,24 @@ public class SessionUtil {
 		request.session().removeAttribute("user");
 	}
 
-	public static UserMessages getOrCreateMessages(Request request) {
-		UserMessages messages = request.session().attribute("userMessages");
+	public static List<UserMessage> getOrCreateMessages(Request request) {
+		List<UserMessage> messages = request.session().attribute("userMessages");
 		if (messages == null) {
-			messages = new UserMessages();
+			messages = new ArrayList<>();
 			request.session().attribute("userMessages", messages);
 		}
 		return messages;
 	}
 
-	public static UserMessages clearUserMessages(Request request) {
-		UserMessages messages = getOrCreateMessages(request);
+	public static List<UserMessage> clearUserMessages(Request request) {
+		List<UserMessage> messages = getOrCreateMessages(request);
 		request.session().removeAttribute("userMessages");
 		return messages;
 	}
 
-	public static void addUserMessage(Request request, Type type, String message) {
+	private static void addUserMessage(Request request, UserMessage.Type type, String message) {
 		LOG.debug("Adding message (" + type.name() + "): " + message);
-		getOrCreateMessages(request).addMessage(type, message);
+		getOrCreateMessages(request).add(new UserMessage(type, message));
 	}
 
 	public static void addOkMessage(Request request, String message) {
@@ -58,24 +61,6 @@ public class SessionUtil {
 
 	public static void addErrorMessage(Request request, String message) {
 		addUserMessage(request, Type.ERROR, message);
-	}
-
-	public static void addLastLocation(Request request) {
-		String location = UrlBuilder.fromString("").withPath(request.pathInfo()).withQuery(request.queryString())
-				.toString();
-		request.session().attribute("lastLocation", location);
-	}
-
-	public static String getLastLocation(Request request) {
-		return getLastLocationOrDefault(request, Path.Web.INDEX);
-	}
-
-	public static String getLastLocationOrDefault(Request request, String defaultPath) {
-		String location = request.session().attribute("lastLocation");
-		if (location == null) {
-			location = defaultPath;
-		}
-		return location;
 	}
 
 }

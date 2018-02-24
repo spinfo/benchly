@@ -1,4 +1,4 @@
-package benchly.error;
+package benchly.controller;
 
 import static spark.Spark.internalServerError;
 import static spark.Spark.notFound;
@@ -8,18 +8,21 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import benchly.error.InternalServerError;
+import benchly.error.InvalidModelException;
+import benchly.error.InvalidRequestException;
+import benchly.error.ResourceNotFoundError;
 import benchly.util.SessionUtil;
-import benchly.util.Views;
 import spark.ExceptionHandler;
 
-public class Handlers {
+public class ErrorHandlers {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(Handlers.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ErrorHandlers.class);
 	
 	// a resource not found error is shown to the user with a warning
 	public static ExceptionHandler<ResourceNotFoundError> resourceNotFound = (e, request, response) -> {
 		SessionUtil.addWarningMessage(request, e.getMessage());
-		notFound(Views.notFound);
+		notFound(JsonTransformer.renderWithoutContent(request));
 	};
 	
 	// the handler for internal errors will output the exception's message to the user
@@ -27,7 +30,7 @@ public class Handlers {
 	public static ExceptionHandler<InternalServerError> internalError = (e, request, response) -> {
 		LOG.error(e.getMessage());
 		SessionUtil.addErrorMessage(request, e.getMessage());
-		internalServerError(Views.errorPage);
+		internalServerError(JsonTransformer.renderWithoutContent(request));
 	};
 	
 	// an SQL exception is logged quietly, a vague general message is shown to the user
@@ -37,11 +40,19 @@ public class Handlers {
 		internalError.handle(new InternalServerError("Unexpected error during database access.", e), request, response);
 	};
 	
+	// on an invalid request, log a warning and return an error code
+	public static ExceptionHandler<InvalidRequestException> invalidRequest = (e, request, response) -> {
+		LOG.warn(e.getMessage());
+		response.status(400);
+		response.body(JsonTransformer.renderWithoutContent(request));
+	};
+
 	// on an invalid model, the validation messages are shown to the user 
 	public static ExceptionHandler<InvalidModelException> invalidModel = (e, request, response) -> {
 		for (String message : e.getModel().getErrorMessages()) {
 			SessionUtil.addErrorMessage(request, message);
 		}
-		response.redirect(SessionUtil.getLastLocation(request));
+		invalidRequest.handle(e, request, response);
 	};
+
 }

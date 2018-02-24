@@ -23,8 +23,7 @@ public abstract class Model {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Model.class);
 
-	// a Set where implementing classes may put error messages disallowing
-	// duplicates
+	// a Set where implementing classes may put error messages.
 	// A model is valid when no error messages exist for it.
 	private Set<String> errorMessages = new TreeSet<>();
 

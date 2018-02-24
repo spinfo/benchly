@@ -1,6 +1,0 @@
-#parse("/templates/layout.vm")
-#@mainLayout()
-<ul>
-	<li>Hello Warudo</li>
-</ul>
-#end

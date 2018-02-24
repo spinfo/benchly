@@ -1,9 +1,0 @@
-#macro( show_workflow $workflow )
-<ul>
-    <li>id: $workflow.getId()</li>
-</ul>
-
-<pre>
-    $workflow.getDefinition()
-</pre>
-#end

@@ -5,6 +5,7 @@ import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
 
+import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -12,16 +13,21 @@ import com.j256.ormlite.table.DatabaseTable;
 /**
  * Based off
  * https://git.allions.net/Robin/spark_java_with_apache_shiro_integration/src/master/src/main/java/com/ondev/robin/shiro_spark/user/User.java
+ * 
+ * TODO: Check if all fields are used
  */
 @DatabaseTable(tableName = "user")
 public class User {
 
+	@Expose
 	@DatabaseField(columnName = "id", generatedId = true)
 	private long id;
 
+	@Expose
 	@DatabaseField
 	private String alias = "";
 
+	@Expose
 	@DatabaseField(columnName = "name", index = true)
 	private String name = "";
 
@@ -31,6 +37,7 @@ public class User {
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] passwordSalt;
 
+	@Expose
 	@DatabaseField(columnName = "email", index = true)
 	private String email = "";
 
@@ -49,7 +56,7 @@ public class User {
 	public User(String name, String email, String password) {
 		setName(name);
 		setEmail(email);
-		
+
 		// generate a random salt for the new user
 		ByteSource salt = (new SecureRandomNumberGenerator()).nextBytes();
 
