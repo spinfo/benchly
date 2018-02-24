@@ -1,8 +1,6 @@
 package benchly.model;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
@@ -113,10 +111,5 @@ public class Workflow extends Model {
 			addError("Author must not be empty");
 		}
 		return isValid();
-	}
-
-	@Override
-	protected List<String> getParameterWhitelist() {
-		return Arrays.asList("name", "definition", "versionId");
 	}
 }

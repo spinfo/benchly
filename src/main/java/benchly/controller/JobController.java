@@ -6,7 +6,6 @@ import benchly.database.JobDao;
 import benchly.database.WorkflowDao;
 import benchly.error.ResourceNotFoundError;
 import benchly.model.Job;
-import benchly.model.Model;
 import benchly.model.User;
 import benchly.model.Workflow;
 import benchly.util.RequestUtil;
@@ -22,7 +21,7 @@ public class JobController extends Controller {
 	};
 
 	public static Route create = (request, response) -> {
-		Job job = Model.fromParams(request.queryMap("job"), Job.class);
+		Job job = JsonTransformer.readRequestBody(request.body(), Job.class);
 
 		User owner = ensureLoggedInUser(request, "only logged in users may create new jobs.");
 		job.setOwner(owner);

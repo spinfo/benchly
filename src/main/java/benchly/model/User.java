@@ -19,7 +19,7 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "user")
 public class User {
 
-	@Expose
+	@Expose(serialize = false)
 	@DatabaseField(columnName = "id", generatedId = true)
 	private long id;
 

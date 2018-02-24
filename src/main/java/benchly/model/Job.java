@@ -1,8 +1,6 @@
 package benchly.model;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -130,11 +128,6 @@ public class Job extends Model {
 	public boolean validate() {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	@Override
-	protected List<String> getParameterWhitelist() {
-		return Arrays.asList("priority", "estimatedTime", "estimatedOutputSize");
 	}
 
 }

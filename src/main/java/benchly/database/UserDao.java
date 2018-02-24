@@ -13,6 +13,10 @@ public class UserDao {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UserDao.class);
 
+	public static int create(User user) throws SQLException {
+		return dao().create(user);
+	}
+	
 	public static User fetchByName(String name) {
 		return queryForFirstWhereEq("name", name);
 	}

@@ -11,7 +11,9 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
+import benchly.TestEntrySetup;
 import benchly.model.Job;
+import benchly.model.StorageConfig;
 import benchly.model.User;
 import benchly.model.Workflow;
 
@@ -21,19 +23,6 @@ import benchly.model.Workflow;
  * TODO: Does this need a close() or exit() method?...
  */
 class DatabaseHelper {
-	
-	private static final User[] users = {
-			new User("bob", "bob@example.com", "secret"),
-			new User("alice", "alice@example.com", "secret")
-	};
-	
-	private static int nWorkflows = 101;
-	private static final Workflow[] workflows = new Workflow[nWorkflows];
-	static {
-		for (int i = 1; i <= nWorkflows; i++) {
-			workflows[i-1] = new Workflow("test-name" + i, "[]", users[0]);
-		}
-	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
@@ -84,27 +73,18 @@ class DatabaseHelper {
 	
 	
 	private void setupTables(final ConnectionSource connectionSource) throws SQLException {
-		// TODO: Remove next three lines
+		// TODO: Remove next lines
 		TableUtils.dropTable(connectionSource, User.class, true);
 		TableUtils.dropTable(connectionSource, Workflow.class, true);
 		TableUtils.dropTable(connectionSource, Job.class, true);
+		TableUtils.dropTable(connectionSource, StorageConfig.class, true);
+
 		TableUtils.createTableIfNotExists(connectionSource, Workflow.class);
 		TableUtils.createTableIfNotExists(connectionSource, User.class);
 		TableUtils.createTableIfNotExists(connectionSource, Job.class);
 		
-		// Test stuff, TODO: Remove
-		TableUtils.clearTable(connectionSource, User.class);
-		Dao<User, Long> userDao = getUserDao();
-		for (final User u : users) {
-			int amount = userDao.create(u);
-			LOG.debug("Created users in db: " + amount);
-		}
-		
-		TableUtils.clearTable(connectionSource, Workflow.class);
-		Dao<Workflow, Long> dao = getWorkflowDao();
-		for (final Workflow w : workflows) {
-			dao.create(w);
-		}
+		// TODO: Remove
+		TestEntrySetup.setup();
 	}
 
 	// convenience method that wraps the SQL Exception on Dao Creation
