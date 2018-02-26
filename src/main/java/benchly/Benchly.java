@@ -20,6 +20,7 @@ import benchly.controller.ErrorHandlers;
 import benchly.controller.JobController;
 import benchly.controller.SessionController;
 import benchly.controller.WorkflowController;
+import benchly.database.TestEntrySetup;
 import benchly.error.InternalServerError;
 import benchly.error.InvalidModelException;
 import benchly.error.InvalidRequestException;
@@ -42,6 +43,9 @@ public class Benchly {
 		// Initialise the Shiro security manager
 		final SecurityManager securityManager = (new IniSecurityManagerFactory("classpath:shiro.ini")).createInstance();
 		SecurityUtils.setSecurityManager(securityManager);
+		
+		// TODO: Remove
+		TestEntrySetup.setup();
 
 		path("/api/v1", () -> {
 

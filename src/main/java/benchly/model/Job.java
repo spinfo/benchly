@@ -1,7 +1,9 @@
 package benchly.model;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
+import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -13,15 +15,16 @@ public class Job extends Model {
 	}
 
 	@DatabaseField(columnName = "id", generatedId = true)
+	@Expose(deserialize = false)
 	private long id;
 	
 	@DatabaseField(columnName = "state")
 	private State state;
 	
-	@DatabaseField(columnName = "owner", canBeNull = false, foreign = true, foreignAutoRefresh = true)
+	@DatabaseField(columnName = "owner", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
 	private User owner;
 
-	@DatabaseField(columnName = "workflow", canBeNull = false, foreign = true, foreignAutoRefresh = true)
+	@DatabaseField(columnName = "workflow", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
 	private Workflow workflow;
 
 	@DatabaseField
@@ -43,11 +46,11 @@ public class Job extends Model {
 	@DatabaseField
 	private long currentOutputSize;
 	
-	@DatabaseField(columnName = "createdAt", canBeNull = false)
+	@DatabaseField(columnName = "createdAt", canBeNull = false, index = true)
 	private Timestamp createdAt;
 	
 	public Job() {
-		this.createdAt = new Timestamp(System.currentTimeMillis());
+		this.createdAt = Timestamp.from(Instant.now());
 	}
 	
 	public Job(User owner, Workflow workflow) {

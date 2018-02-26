@@ -17,11 +17,11 @@ public class JobDao {
 		return dao().queryForId(jobId);
 	}
 	
-	public static long create(Job job) throws SQLException {
+	public static int create(Job job) throws SQLException {
 		return dao().create(job);
 	}
 	
-	public static long update(Job job) throws SQLException {
+	public static int update(Job job) throws SQLException {
 		return dao().update(job);
 	}
 

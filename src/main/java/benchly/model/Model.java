@@ -7,7 +7,7 @@ import java.util.TreeSet;
 
 /**
  * A base class for all models that sets up some basic functionality like
- * validation and instantiation by parameters.
+ * validation.
  */
 public abstract class Model {
 

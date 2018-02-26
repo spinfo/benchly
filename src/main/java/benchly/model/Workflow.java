@@ -1,6 +1,7 @@
 package benchly.model;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
@@ -14,10 +15,11 @@ public class Workflow extends Model {
 
 	// The primary id of this workflow in the database
 	@DatabaseField(columnName = "id", generatedId = true)
-	@Expose
+	@Expose(deserialize = false)
 	private long id;
 
 	// All versions of a workflow refer to the same versionId, a UUID string
+	// TODO: Rename to 'versionOf'
 	@DatabaseField(columnName = "versionId", canBeNull = false, index = true, width = 36)
 	@Expose
 	private String versionId;
@@ -34,18 +36,18 @@ public class Workflow extends Model {
 	@Expose
 	private User author;
 
-	@DatabaseField(columnName = "latestVersion", canBeNull = false)
+	@DatabaseField(columnName = "latestVersion", canBeNull = false, index = true)
 	@Expose
 	private Boolean latestVersion;
 	
-	@DatabaseField(columnName = "createdAt", canBeNull = false)
+	@DatabaseField(columnName = "createdAt", canBeNull = false, index = true)
 	@Expose
 	private Timestamp createdAt;
 
 	public Workflow() {
 		this.versionId = UUID.randomUUID().toString();
 		this.latestVersion = true;
-		this.createdAt = new Timestamp(System.currentTimeMillis());
+		this.createdAt = Timestamp.from(Instant.now());
 	}
 
 	// create a new workflow not referring to an existing version
@@ -94,10 +96,6 @@ public class Workflow extends Model {
 
 	public Timestamp getCreatedAt() {
 		return createdAt;
-	}
-	
-	public String getCreatedAtReadable() {
-		return createdAt.toLocalDateTime().toString();
 	}
 
 	@Override

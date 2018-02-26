@@ -58,11 +58,10 @@ public class WorkflowDao {
 				updateBuilder.updateColumnValue("latestVersion", false).where().eq("versionId",
 						workflow.getVersionId());
 				int rows = updateBuilder.update();
-				LOG.debug("Updated " + rows + " rows when inserting new workflow.");
+				LOG.debug("Updated " + rows + " other rows when inserting new workflow.");
 
 				// insert the new workflow
 				rows = dao.create(workflow);
-				LOG.debug("Inserted " + rows + " new workflow(s).");
 
 				return rows;
 			}

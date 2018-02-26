@@ -81,6 +81,20 @@
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 		</dependency>
+		
+		<!-- Used to connect to different storage providers -->
+		<dependency>
+			<groupId>org.apache.jclouds</groupId>
+			<artifactId>jclouds-all</artifactId>
+			<version>2.0.3</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.jclouds.labs</groupId>
+		    <artifactId>b2</artifactId>
+		    <version>2.0.3</version>
+		</dependency>
+		
+		
 	</dependencies>
 
 	<build>

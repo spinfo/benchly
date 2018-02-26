@@ -19,16 +19,16 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable(tableName = "user")
 public class User {
 
-	@Expose(serialize = false)
 	@DatabaseField(columnName = "id", generatedId = true)
+	@Expose(serialize = false)
 	private long id;
 
-	@Expose
 	@DatabaseField
+	@Expose
 	private String alias = "";
 
-	@Expose
 	@DatabaseField(columnName = "name", index = true)
+	@Expose
 	private String name = "";
 
 	@DatabaseField(columnName = "passwordHash", index = true)
@@ -37,16 +37,11 @@ public class User {
 	@DatabaseField(dataType = DataType.BYTE_ARRAY)
 	private byte[] passwordSalt;
 
-	@Expose
 	@DatabaseField(columnName = "email", index = true)
+	@Expose
 	private String email = "";
 
-	@DatabaseField(columnName = "verifiactionId", index = true)
-	private String verificationId;
-
-	@DatabaseField
-	private boolean activated = false;
-
+	// a subject used for authentication
 	private Subject subject;
 
 	public User() {
@@ -119,22 +114,6 @@ public class User {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}
-
-	public String getVerificationId() {
-		return verificationId;
-	}
-
-	public void setVerificationId(String verificationId) {
-		this.verificationId = verificationId;
-	}
-
-	public boolean isActivated() {
-		return activated;
-	}
-
-	public void setActivated(boolean activated) {
-		this.activated = activated;
 	}
 
 	public Subject getSubject() {

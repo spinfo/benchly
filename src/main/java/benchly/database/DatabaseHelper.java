@@ -11,16 +11,15 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
-import benchly.TestEntrySetup;
 import benchly.model.Job;
 import benchly.model.StorageConfig;
+import benchly.model.StorageFileMeta;
+import benchly.model.StoragePermission;
 import benchly.model.User;
 import benchly.model.Workflow;
 
 /**
  * A singleton class providing access to the sqlite database.
- * 
- * TODO: Does this need a close() or exit() method?...
  */
 class DatabaseHelper {
 
@@ -29,6 +28,9 @@ class DatabaseHelper {
 	private Dao<Workflow, Long> workflowDao = null;
 	private Dao<User, Long> userDao = null;
 	private Dao<Job, Long> jobDao = null;
+	private Dao<StorageConfig, Long> storageConfigDao = null;
+	private Dao<StoragePermission, Long> storagePermissionDao = null;
+	private Dao<StorageFileMeta, Long> storageFileMetaDao = null;
 	
 	private ConnectionSource connectionSource;
 
@@ -71,6 +73,27 @@ class DatabaseHelper {
 		return this.jobDao;
 	}
 	
+	protected Dao<StorageConfig, Long> getStorageConfigDao() {
+		if (this.storageConfigDao == null) {
+			this.storageConfigDao = this.getMyDaoRuntimeExcept(connectionSource, StorageConfig.class);
+		}
+		return this.storageConfigDao;
+	}
+	
+	protected Dao<StoragePermission, Long> getStoragePermissionDao() {
+		if (this.storagePermissionDao == null) {
+			this.storagePermissionDao = this.getMyDaoRuntimeExcept(connectionSource, StoragePermission.class);
+		}
+		return this.storagePermissionDao;
+	}
+	
+	protected Dao<StorageFileMeta, Long> getStorageFileMetaDao() {
+		if (this.storageFileMetaDao == null) {
+			this.storageFileMetaDao = this.getMyDaoRuntimeExcept(connectionSource, StorageFileMeta.class);
+		}
+		return this.storageFileMetaDao;
+	}
+	
 	
 	private void setupTables(final ConnectionSource connectionSource) throws SQLException {
 		// TODO: Remove next lines
@@ -78,13 +101,15 @@ class DatabaseHelper {
 		TableUtils.dropTable(connectionSource, Workflow.class, true);
 		TableUtils.dropTable(connectionSource, Job.class, true);
 		TableUtils.dropTable(connectionSource, StorageConfig.class, true);
+		TableUtils.dropTable(connectionSource, StoragePermission.class, true);
+		TableUtils.dropTable(connectionSource, StorageFileMeta.class, true);
 
 		TableUtils.createTableIfNotExists(connectionSource, Workflow.class);
 		TableUtils.createTableIfNotExists(connectionSource, User.class);
 		TableUtils.createTableIfNotExists(connectionSource, Job.class);
-		
-		// TODO: Remove
-		TestEntrySetup.setup();
+		TableUtils.createTableIfNotExists(connectionSource, StorageConfig.class);
+		TableUtils.createTableIfNotExists(connectionSource, StoragePermission.class);
+		TableUtils.createTableIfNotExists(connectionSource, StorageFileMeta.class);
 	}
 
 	// convenience method that wraps the SQL Exception on Dao Creation
