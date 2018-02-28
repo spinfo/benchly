@@ -82,7 +82,7 @@ public class UserController extends Controller {
 		return JsonTransformer.render(target, request);
 	};
 
-	public static Route delete = (request, response) -> {
+	public static Route destroy = (request, response) -> {
 		User executing = ensureLoggedInUser(request, "Only logged-in users may delete a user.");
 
 		User target = ensureUserFromRequesParams(request);

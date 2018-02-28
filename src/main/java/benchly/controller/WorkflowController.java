@@ -24,6 +24,7 @@ public class WorkflowController extends Controller {
 	private static final Logger LOG = LoggerFactory.getLogger(WorkflowController.class);
 
 	public static Route index = (request, response) -> {
+		ensureUserMayViewWorkflows(request);
 		PaginationParams pagination = RequestUtil.parsePaginationParams(request);
 
 		List<Workflow> workflows = WorkflowDao.fetchLatestVersions(pagination);
@@ -34,18 +35,25 @@ public class WorkflowController extends Controller {
 
 	public static Route create = (request, response) -> {
 		Workflow workflow = JsonTransformer.readRequestBody(request.body(), Workflow.class);
-		Workflow created = createNewWorkflow(workflow, request);
+		User user = ensureLoggedInUser(request, "Only registered users may create workflows.");
+
+		// overwrite any version id on the received to workflow to prevent users from
+		// overwriting by creating a new version of another users workflow
+		workflow.generateNewVersionId();
+		Workflow created = createNewWorkflow(workflow, user, request);
 
 		SessionUtil.addOkMessage(request, "Workflow created.");
 		return JsonTransformer.render(created, request);
 	};
 
 	public static Route show = (request, response) -> {
+		ensureLoggedInUser(request, "Only logged-in users may view workflows.");
 		Workflow workflow = ensureSingleWorkflowByVersionIdFromRoute(request);
 		return JsonTransformer.render(workflow, request);
 	};
 
 	public static Route showVersion = (request, response) -> {
+		ensureLoggedInUser(request, "Only logged-in users may view workflows.");
 		long id = RequestUtil.parseIdParam(request);
 		String versionId = RequestUtil.parseUuidParam(request);
 
@@ -58,31 +66,34 @@ public class WorkflowController extends Controller {
 	};
 
 	public static Route update = (request, response) -> {
+		User user = ensureLoggedInUser(request, "Only logged in users may update workflows.");
 		Workflow newWorkflow = JsonTransformer.readRequestBody(request.body(), Workflow.class);
+		Workflow oldWorkflow = ensureSingleWorkflowByVersionIdFromRoute(request);
+		ensureUserMayEditWorkflow(user, oldWorkflow, request);
 
 		// ensure that there is an older version of the workflow and that it matches the
 		// version id that will be persisted
-		Workflow oldWorkflow = ensureSingleWorkflowByVersionIdFromRoute(request);
 		if (!oldWorkflow.getVersionId().equals(newWorkflow.getVersionId())) {
 			// this is a bit paranoid, because we just retrieved the old version by id, but
 			// let's check anyway
-			throw new InvalidRequestException("Version ids of old and new workflows do not match");
+			throw new InvalidRequestException("Version ids of old and new workflows do not match.");
 		}
 
 		// updating a workflow simply creates a new version
-		Workflow created = createNewWorkflow(newWorkflow, request);
+		Workflow created = createNewWorkflow(newWorkflow, user, request);
 		SessionUtil.addOkMessage(request, "Workflow updated.");
 		return JsonTransformer.render(created, request);
 	};
 
 	public static Route destroy = (request, response) -> {
+		User user = ensureLoggedInUser(request, "Only logged in users may delete workflows.");
 		Workflow workflow = ensureSingleWorkflowByVersionIdFromRoute(request);
+		ensureUserMayEditWorkflow(user, workflow, request);
 
 		int deletedRows = WorkflowDao.setDeleted(workflow);
 		LOG.debug("Deleted " + deletedRows + " versions of workflow " + workflow.getVersionId());
 
 		SessionUtil.addOkMessage(request, "Workflow deleted.");
-		response.status(200);
 		return JsonTransformer.render(workflow, request);
 	};
 
@@ -99,10 +110,19 @@ public class WorkflowController extends Controller {
 		return workflow;
 	}
 
-	private static Workflow createNewWorkflow(Workflow workflow, Request request)
-			throws SQLException, InvalidModelException, InternalServerError {
+	private static void ensureUserMayEditWorkflow(User user, Workflow workflow, Request request) {
+		if (user.isAdmin() || workflow.getAuthor().getId() == user.getId()) {
+			return;
+		}
+		haltForbbiden(request, "You have insufficient permissions to edit this workflow.");
+	}
 
-		User author = ensureLoggedInUser(request, "Only registered users may create or update workflows.");
+	private static User ensureUserMayViewWorkflows(Request request) {
+		return ensureLoggedInUser(request, "Only registered users may create or update workflows.");
+	}
+
+	private static Workflow createNewWorkflow(Workflow workflow, User author, Request request)
+			throws SQLException, InvalidModelException, InternalServerError {
 		workflow.setAuthor(author);
 
 		if (workflow.validate()) {

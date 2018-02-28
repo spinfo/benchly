@@ -49,7 +49,7 @@ public class Workflow extends Model {
 	private Timestamp createdAt;
 
 	public Workflow() {
-		this.versionId = UUID.randomUUID().toString();
+		this.generateNewVersionId();
 		this.latestVersion = true;
 		this.createdAt = Timestamp.from(Instant.now());
 	}
@@ -92,6 +92,12 @@ public class Workflow extends Model {
 
 	public String getVersionId() {
 		return versionId;
+	}
+
+	// instead of a setter, the version Id is never set directly
+	public String generateNewVersionId() {
+		this.versionId = UUID.randomUUID().toString();
+		return this.versionId;
 	}
 
 	public boolean isLatestVersion() {

@@ -1,5 +1,6 @@
 package benchly;
 
+import static spark.Spark.afterAfter;
 import static spark.Spark.delete;
 import static spark.Spark.exception;
 import static spark.Spark.get;
@@ -25,10 +26,17 @@ import benchly.error.InternalServerError;
 import benchly.error.InvalidModelException;
 import benchly.error.InvalidRequestException;
 import benchly.error.ResourceNotFoundError;
+import spark.Route;
 
 public class Benchly {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Benchly.class);
+
+	// a route that can be mapped to all request not handled by other Routes
+	private static Route notFoundRoute = (request, response) -> {
+		String msg = String.format("404 Not found: %s %s", request.requestMethod(), request.pathInfo());
+		throw new ResourceNotFoundError(msg);
+	};
 
 	public static void main(String[] args) {
 
@@ -50,7 +58,7 @@ public class Benchly {
 				get("", UserController.index);
 				get("/:id", UserController.show);
 				put("/:id", UserController.update);
-				delete("/:id", UserController.delete);
+				delete("/:id", UserController.destroy);
 			});
 
 			path("/session", () -> {
@@ -65,13 +73,24 @@ public class Benchly {
 				get("/:uuid", WorkflowController.show);
 				put("/:uuid", WorkflowController.update);
 				get("/:uuid/version/:id", WorkflowController.showVersion);
+				delete("/:uuid", WorkflowController.destroy);
 			});
 
 			path("/jobs", () -> {
 				post("", JobController.create);
 				get("/:id", JobController.show);
 			});
+		});
 
+		get("*", notFoundRoute);
+		put("*", notFoundRoute);
+		post("*", notFoundRoute);
+		delete("*", notFoundRoute);
+
+		// All our api routes return json even those that throw exceptions, set up the
+		// response headers accordingly
+		afterAfter("*", (request, response) -> {
+			response.type("application/json");
 		});
 
 		// Exceptions that are caught from the routes trigger redirecting or other
