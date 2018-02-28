@@ -1,6 +1,7 @@
 package benchly.database;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -9,7 +10,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.DeleteBuilder;
@@ -41,6 +41,11 @@ public class StorageConfigDao {
 
 	public static List<StorageFileMeta> fetchFilesMeta(StorageConfig config) throws SQLException {
 		return fileMetaDao().queryForEq("storageConfig", config);
+	}
+
+	public static boolean userHasAccess(User user, StorageConfig config) throws SQLException {
+		return !permissionDao().queryBuilder().where().eq("storageConfig", config).and().eq("user", user).query()
+				.isEmpty();
 	}
 
 	public static List<StorageConfig> fetchAcessible(User user) throws SQLException {
@@ -80,7 +85,7 @@ public class StorageConfigDao {
 	}
 
 	public static int delete(StorageConfig config) throws SQLException {
-		return delete(Lists.asList(config, new StorageConfig[1]));
+		return delete(Arrays.asList(config));
 	}
 
 	public static int deleteAllWithOwner(User owner) throws SQLException {

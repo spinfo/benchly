@@ -21,7 +21,6 @@ public class StorageFileMeta extends Model {
 	private long id;
 
 	@DatabaseField(columnName = "storageConfig", canBeNull = false, foreign = true, index = true)
-	@Expose(deserialize = false)
 	private StorageConfig storageConfig;
 
 	// a file name
@@ -63,7 +62,7 @@ public class StorageFileMeta extends Model {
 		this();
 		this.storageConfig = config;
 	}
-	
+
 	@Override
 	public boolean validate() {
 		valid = true;

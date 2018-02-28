@@ -4,10 +4,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStoreContext;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -18,7 +17,15 @@ public class StorageConfig extends Model {
 
 	// an enum to identify different provider types
 	public static enum Provider {
-		S3("aws-s3"), B2("b2"), SWIFT("openstack-swift");
+
+		@SerializedName("aws-s3")
+		S3("aws-s3"),
+
+		@SerializedName("b2")
+		B2("b2"),
+
+		@SerializedName("openstack-swift")
+		SWIFT("openstack-swift");
 
 		private final String val;
 
@@ -72,7 +79,7 @@ public class StorageConfig extends Model {
 	@ForeignCollectionField(foreignFieldName = "storageConfig", eager = true)
 	@Expose(deserialize = false)
 	private ForeignCollection<StoragePermission> accessPermissions;
-	
+
 	// locally stored information about the files accessible via this config
 	@ForeignCollectionField(foreignFieldName = "storageConfig", eager = true)
 	@Expose(deserialize = false)
@@ -85,21 +92,14 @@ public class StorageConfig extends Model {
 	@DatabaseField(columnName = "updatedAt", canBeNull = false, index = true)
 	@Expose(deserialize = false)
 	private Timestamp updatedAt;
-	
-	@DatabaseField(columnName = "lastRefresh", canBeNull = true, index = true)
+
+	@DatabaseField(columnName = "refreshedAt", canBeNull = true, index = true)
 	@Expose(deserialize = false)
-	private Timestamp lastRefresh;
+	private Timestamp refreshedAt;
 
 	public StorageConfig() {
-		this.createdAt = Timestamp.from(Instant.now());;
-	}
-
-	public BlobStoreContext createBlobStoreContext() {
-		ContextBuilder builder = ContextBuilder.newBuilder(provider.toString()).credentials(identity, credential);
-		if (endpoint != null && !endpoint.isEmpty()) {
-			builder.endpoint(endpoint);
-		}
-		return builder.buildView(BlobStoreContext.class);
+		this.createdAt = Timestamp.from(Instant.now());
+		;
 	}
 
 	public Provider getProvider() {
@@ -146,6 +146,10 @@ public class StorageConfig extends Model {
 		return id;
 	}
 
+	public String getEndpoint() {
+		return endpoint;
+	}
+
 	public Timestamp getCreatedAt() {
 		return createdAt;
 	}
@@ -153,11 +157,11 @@ public class StorageConfig extends Model {
 	public Timestamp getUpdatedAt() {
 		return updatedAt;
 	}
-	
+
 	public void setUpdatedAt(Timestamp timestamp) {
 		this.updatedAt = timestamp;
 	}
-	
+
 	public void setUpdatedAtNow() {
 		setUpdatedAt(Timestamp.from(Instant.now()));
 	}

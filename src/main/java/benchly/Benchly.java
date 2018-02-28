@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import benchly.controller.ErrorHandlers;
 import benchly.controller.JobController;
 import benchly.controller.SessionController;
+import benchly.controller.StorageController;
 import benchly.controller.UserController;
 import benchly.controller.WorkflowController;
 import benchly.database.TestEntrySetup;
@@ -80,6 +81,14 @@ public class Benchly {
 				post("", JobController.create);
 				get("/:id", JobController.show);
 			});
+
+			path("/storage", () -> {
+				post("", StorageController.create);
+				get("", StorageController.index);
+				get("/:id", StorageController.show);
+				put("/:id", StorageController.update);
+				delete("/:id", StorageController.destroy);
+			});
 		});
 
 		get("*", notFoundRoute);
@@ -100,6 +109,8 @@ public class Benchly {
 		exception(InvalidModelException.class, ErrorHandlers.invalidModel);
 		exception(InvalidRequestException.class, ErrorHandlers.invalidRequest);
 		exception(SQLException.class, ErrorHandlers.sqlException);
+
+		exception(Exception.class, ErrorHandlers.internalError);
 
 		LOG.debug("Startup finished.");
 	}

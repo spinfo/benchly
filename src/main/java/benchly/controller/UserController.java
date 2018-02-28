@@ -13,7 +13,6 @@ import benchly.util.RequestUtil;
 import benchly.util.RequestUtil.PaginationParams;
 import benchly.util.SessionUtil;
 import spark.Request;
-import spark.Response;
 import spark.Route;
 
 public class UserController extends Controller {

@@ -15,7 +15,6 @@ public class StoragePermission extends Model {
 	private long id;
 
 	@DatabaseField(columnName = "storageConfig", canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndexName = "configToUser")
-	@Expose
 	private StorageConfig storageConfig;
 
 	@DatabaseField(columnName = "user", canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndexName = "configToUser")
@@ -30,13 +29,13 @@ public class StoragePermission extends Model {
 		// empty constructor mainly for ormlite
 		this.createdAt = Timestamp.from(Instant.now());
 	}
-	
+
 	public StoragePermission(StorageConfig config, User user) {
 		this();
 		this.storageConfig = config;
 		this.user = user;
 	}
-	
+
 	public long getId() {
 		return id;
 	}
