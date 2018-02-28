@@ -1,5 +1,7 @@
 package benchly.database;
 
+import java.sql.SQLException;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -20,7 +22,7 @@ public class OrmliteRealm extends AuthorizingRealm {
 	public OrmliteRealm() {
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	@Override
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection arg0) {
 		// TODO Auto-generated method stub
@@ -33,14 +35,26 @@ public class OrmliteRealm extends AuthorizingRealm {
 		AuthenticationInfo result = null;
 
 		LOG.debug("Looking for user with name: " + name);
-		User user = UserDao.fetchByName(name);
-		if (user != null) {
-			ByteSource salt = ByteSource.Util.bytes(user.getPasswordSalt());
-			result = new SimpleAuthenticationInfo(user.getId(), user.getPasswordHash(), salt, getClass().getName());
-		} else {
-			LOG.error("Unable to fetch user.");
+		User user = null;
+		try {
+			user = UserDao.fetchByName(name);
+		} catch (SQLException e) {
+			LOG.error("Unexpected SQL exception during user authentication: " + e.getMessage());
+			e.printStackTrace();
+			user = null;
 		}
 
+		if (user != null) {
+			if (user.isDeleted()) {
+				LOG.warn("Not loggin in deleted user.");
+			} else {
+				ByteSource salt = ByteSource.Util.bytes(user.getPasswordSalt());
+				result = new SimpleAuthenticationInfo(user.getId(), user.getPasswordHash(), salt, getClass().getName());
+			}
+		} else {
+			LOG.error("Unable to fetch user for authentication.");
+		}
+		
 		return result;
 	}
 

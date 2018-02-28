@@ -28,16 +28,19 @@ class JsonTransformer {
 			this.offset = offset;
 			this.max = max;
 		}
-
+	}
+	
+	private static String doRender(JsonObject jsonObject) {
+		return GSON.toJson(jsonObject);
 	}
 
 	protected static String render(Object model, Request request) {
-		return prepareWithDefaultFields(model, request).toString();
+		return doRender(prepareWithDefaultFields(model, request));
 	}
 	
 	// renders only the information contained in every response without a main model 
 	protected static String renderWithoutContent(Request request) {
-		return prepareWithDefaultFields("", request).toString();
+		return doRender(prepareWithDefaultFields("", request));
 	}
 
 	protected static String renderPaginatedResult(Collection<? extends Object> objects, Request request, long limit,
@@ -47,7 +50,7 @@ class JsonTransformer {
 		JsonElement pagination = GSON.toJsonTree(new PaginationInfo(limit, offset, max));
 		result.add("pagination", pagination);
 
-		return result.toString();
+		return doRender(result);
 	}
 
 	// read a json object but wrap any json syntax exceptions

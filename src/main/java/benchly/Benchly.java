@@ -6,7 +6,6 @@ import static spark.Spark.get;
 import static spark.Spark.path;
 import static spark.Spark.post;
 import static spark.Spark.put;
-import static spark.Spark.staticFiles;
 
 import java.sql.SQLException;
 
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import benchly.controller.ErrorHandlers;
 import benchly.controller.JobController;
 import benchly.controller.SessionController;
+import benchly.controller.UserController;
 import benchly.controller.WorkflowController;
 import benchly.database.TestEntrySetup;
 import benchly.error.InternalServerError;
@@ -36,18 +36,22 @@ public class Benchly {
 		Thread jobQueueThread = new Thread(new JobQueue());
 		jobQueueThread.start();
 
-		// let spark serve the folder: src/main/resources/public
-		// TODO: Set caching policies for this
-		staticFiles.location("/public");
-
 		// Initialise the Shiro security manager
 		final SecurityManager securityManager = (new IniSecurityManagerFactory("classpath:shiro.ini")).createInstance();
 		SecurityUtils.setSecurityManager(securityManager);
-		
+
 		// TODO: Remove
 		TestEntrySetup.setup();
 
 		path("/api/v1", () -> {
+
+			path("/users", () -> {
+				post("", UserController.create);
+				get("", UserController.index);
+				get("/:id", UserController.show);
+				put("/:id", UserController.update);
+				delete("/:id", UserController.delete);
+			});
 
 			path("/session", () -> {
 				get("", SessionController.showLoggedInUser);
@@ -60,8 +64,9 @@ public class Benchly {
 				post("", WorkflowController.create);
 				get("/:uuid", WorkflowController.show);
 				put("/:uuid", WorkflowController.update);
+				get("/:uuid/version/:id", WorkflowController.showVersion);
 			});
-			
+
 			path("/jobs", () -> {
 				post("", JobController.create);
 				get("/:id", JobController.show);

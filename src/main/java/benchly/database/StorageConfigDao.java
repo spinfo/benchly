@@ -6,10 +6,10 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import org.jclouds.filesystem.FilesystemApiMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.DeleteBuilder;
@@ -43,26 +43,53 @@ public class StorageConfigDao {
 		return fileMetaDao().queryForEq("storageConfig", config);
 	}
 
-	public static List<StorageConfig> fetchAcessibleStorage(User user) throws SQLException {
+	public static List<StorageConfig> fetchAcessible(User user) throws SQLException {
 		// get a query builder that retrieves config ids for a user
 		QueryBuilder<StoragePermission, Long> permissionQb = permissionDao().queryBuilder();
 		permissionQb.selectColumns("storageConfig").where().eq("user", user);
 
-		// query for all configs that are either owned by the user or he has permission
+		// query for all configs that are either owned by the user or she has permission
 		// to access
 		return dao().queryBuilder().where().eq("owner", user).or().in("id", permissionQb).query();
 	}
 
-	public static void addPermissionForUser(StorageConfig config, StoragePermission permission) throws SQLException {
-		// TODO: check if permission exists (or will this be bulk-delete and insert
-		// anyway?)
-		if (config.getAccessPermissions() == null) {
-			dao().assignEmptyForeignCollection(config, "accessPermissions");
-		}
-		config.getAccessPermissions().add(permission);
+	public static List<StorageConfig> fetchWhereOwner(User owner) throws SQLException {
+		return dao().queryBuilder().where().eq("owner", owner).query();
 	}
-	
-	public static int updateAccessPermissions(StorageConfig config, Set<StoragePermission> permissions) throws SQLException {
+
+	public static int delete(List<StorageConfig> configs) throws SQLException {
+		// collect the ids to delete by
+		Set<Long> ids = configs.stream().map(c -> c.getId()).collect(Collectors.toSet());
+
+		// prepare the permissions and file meta deletes
+		DeleteBuilder<StoragePermission, Long> permissionDelete = permissionDao().deleteBuilder();
+		DeleteBuilder<StorageFileMeta, Long> fileMetaDelete = fileMetaDao().deleteBuilder();
+		permissionDelete.where().in("storageConfig", ids);
+		fileMetaDelete.where().in("storageConfig", ids);
+
+		int result = TransactionManager.callInTransaction(dao().getConnectionSource(), new Callable<Integer>() {
+
+			@Override
+			public Integer call() throws Exception {
+				permissionDelete.delete();
+				fileMetaDelete.delete();
+				return dao().delete(configs);
+			}
+		});
+		return result;
+	}
+
+	public static int delete(StorageConfig config) throws SQLException {
+		return delete(Lists.asList(config, new StorageConfig[1]));
+	}
+
+	public static int deleteAllWithOwner(User owner) throws SQLException {
+		// this is inefficient, but seldom used
+		return delete(fetchWhereOwner(owner));
+	}
+
+	public static int updateAccessPermissions(StorageConfig config, Set<StoragePermission> permissions)
+			throws SQLException {
 		// make sure that the right config id is set
 		Set<StoragePermission> toPersist = permissions.stream()
 				.filter(p -> p.getStorageConfig().getId() == config.getId()).collect(Collectors.toSet());
@@ -83,10 +110,11 @@ public class StorageConfigDao {
 		// actually update
 		return bulkUpdateForStorageConfig(fileMetaDao(), config, toPersist);
 	}
-	
-	// bulk updates the daos table be deleting all objects referring to the storage config
-	// and then inserting the new objects
-	private static <T extends Object> int bulkUpdateForStorageConfig(Dao<T, Long> dao, StorageConfig config, Set<T> newObjects) throws SQLException {
+
+	// bulk updates the dao's table by deleting all objects referring to the storage
+	// config and then inserting the new objects
+	private static <T extends Object> int bulkUpdateForStorageConfig(Dao<T, Long> dao, StorageConfig config,
+			Set<T> newObjects) throws SQLException {
 		DeleteBuilder<?, Long> delete = dao.deleteBuilder();
 		delete.where().eq("storageConfig", config);
 		int created = TransactionManager.callInTransaction(dao.getConnectionSource(), new Callable<Integer>() {

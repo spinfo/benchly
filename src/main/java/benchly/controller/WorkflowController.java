@@ -78,7 +78,7 @@ public class WorkflowController extends Controller {
 	public static Route destroy = (request, response) -> {
 		Workflow workflow = ensureSingleWorkflowByVersionIdFromRoute(request);
 
-		int deletedRows = WorkflowDao.destroy(workflow);
+		int deletedRows = WorkflowDao.setDeleted(workflow);
 		LOG.debug("Deleted " + deletedRows + " versions of workflow " + workflow.getVersionId());
 
 		SessionUtil.addOkMessage(request, "Workflow deleted.");
@@ -107,7 +107,7 @@ public class WorkflowController extends Controller {
 
 		if (workflow.validate()) {
 			int count = WorkflowDao.save(workflow);
-			ensureRowCountIsOne(count, "create");
+			ensureRowCountIsOne(count, "create workfow");
 		} else {
 			throw new InvalidModelException(workflow);
 		}

@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
@@ -23,7 +23,7 @@ public class Workflow extends Model {
 	@DatabaseField(columnName = "versionId", canBeNull = false, index = true, width = 36)
 	@Expose
 	private String versionId;
-	
+
 	@DatabaseField(columnName = "name")
 	@Expose
 	private String name;
@@ -36,10 +36,14 @@ public class Workflow extends Model {
 	@Expose
 	private User author;
 
+	@DatabaseField(columnName = "isDeleted", canBeNull = false)
+	@Expose(deserialize = false)
+	private boolean isDeleted = false;
+
 	@DatabaseField(columnName = "latestVersion", canBeNull = false, index = true)
 	@Expose
 	private Boolean latestVersion;
-	
+
 	@DatabaseField(columnName = "createdAt", canBeNull = false, index = true)
 	@Expose
 	private Timestamp createdAt;
@@ -60,8 +64,8 @@ public class Workflow extends Model {
 
 	// create a new workflow, that is a new version of an existing workflow
 	public Workflow(Workflow previousVersion) {
-		this(previousVersion.name, previousVersion.definition, previousVersion.author);	
-		
+		this(previousVersion.name, previousVersion.definition, previousVersion.author);
+
 		// immediately overwrite the versionId from the default constructor
 		this.versionId = previousVersion.versionId;
 	}
@@ -81,7 +85,7 @@ public class Workflow extends Model {
 	public User getAuthor() {
 		return author;
 	}
-	
+
 	public void setAuthor(User author) {
 		this.author = author;
 	}
@@ -92,6 +96,14 @@ public class Workflow extends Model {
 
 	public boolean isLatestVersion() {
 		return latestVersion;
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
 	}
 
 	public Timestamp getCreatedAt() {

@@ -1,8 +1,11 @@
 package benchly.model;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
 
 import com.google.gson.annotations.Expose;
@@ -11,47 +14,64 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 /**
- * Based off
- * https://git.allions.net/Robin/spark_java_with_apache_shiro_integration/src/master/src/main/java/com/ondev/robin/shiro_spark/user/User.java
- * 
- * TODO: Check if all fields are used
+ * A minimal user object used for authentication via email
  */
 @DatabaseTable(tableName = "user")
-public class User {
+public class User extends Model {
 
 	@DatabaseField(columnName = "id", generatedId = true)
-	@Expose(serialize = false)
+	@Expose(deserialize = false)
 	private long id;
-
-	@DatabaseField
-	@Expose
-	private String alias = "";
 
 	@DatabaseField(columnName = "name", index = true)
 	@Expose
 	private String name = "";
+	
+	@Expose(serialize = false)
+	private String password;
 
-	@DatabaseField(columnName = "passwordHash", index = true)
+	@DatabaseField(columnName = "passwordHash", index = true, canBeNull = false)
 	private String passwordHash = "";
 
-	@DatabaseField(dataType = DataType.BYTE_ARRAY)
+	@DatabaseField(dataType = DataType.BYTE_ARRAY, canBeNull = false)
 	private byte[] passwordSalt;
 
 	@DatabaseField(columnName = "email", index = true)
 	@Expose
 	private String email = "";
 
-	// a subject used for authentication
-	private Subject subject;
+	@DatabaseField(columnName = "admin", canBeNull = false)
+	@Expose
+	private boolean isAdmin = false;
+
+	@DatabaseField(columnName = "isDeleted", canBeNull = false)
+	@Expose(deserialize = false)
+	private boolean isDeleted = false;
+
+	@DatabaseField(columnName = "createdAt", canBeNull = false, index = true)
+	@Expose(deserialize = false)
+	private Timestamp createdAt;
+
+	@DatabaseField(columnName = "updatedAt", canBeNull = false, index = true)
+	@Expose(deserialize = false)
+	private Timestamp updatedAt;
 
 	public User() {
 		// Empty constructor for ormlite
+		this.createdAt = Timestamp.from(Instant.now());
 	}
 
 	public User(String name, String email, String password) {
+		this();
+
 		setName(name);
 		setEmail(email);
-
+		setPassword(password);
+		
+		initializeHashAndSalt();
+	}
+	
+	public void initializeHashAndSalt() {
 		// generate a random salt for the new user
 		ByteSource salt = (new SecureRandomNumberGenerator()).nextBytes();
 
@@ -62,26 +82,8 @@ public class User {
 		setPasswordSalt(salt.getBytes());
 	}
 
-	// Check if the subject is authenticated
-	public boolean isLoggedIn() {
-		if (getSubject() != null) {
-			if (getSubject().isAuthenticated()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public long getId() {
 		return id;
-	}
-
-	public String getAlias() {
-		return alias;
-	}
-
-	public void setAlias(String alias) {
-		this.alias = alias;
 	}
 
 	public String getName() {
@@ -92,6 +94,8 @@ public class User {
 		this.name = name;
 	}
 
+	
+	
 	public String getPasswordHash() {
 		return passwordHash;
 	}
@@ -116,12 +120,62 @@ public class User {
 		this.email = email;
 	}
 
-	public Subject getSubject() {
-		return subject;
+	public boolean isAdmin() {
+		return this.isAdmin;
 	}
 
-	public void setSubject(Subject subject) {
-		this.subject = subject;
+	public void setAdmin(boolean admin) {
+		this.isAdmin = admin;
+	}
+
+	public Timestamp getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Timestamp createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Timestamp getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(Timestamp updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+	public void setUpdatedAtNow() {
+		this.updatedAt = Timestamp.from(Instant.now());
+	}
+
+	@Override
+	public boolean validate() {
+		valid = true;
+		
+		if (StringUtils.isBlank(this.name)) {
+			addError("Name cannot be empty.");
+		}
+		if (StringUtils.isBlank(this.email)) {
+			addError("Email cannot be empty.");
+		}
+
+		return isValid();
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
 	}
 
 }

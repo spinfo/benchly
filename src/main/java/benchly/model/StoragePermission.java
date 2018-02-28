@@ -31,7 +31,7 @@ public class StoragePermission extends Model {
 		this.createdAt = Timestamp.from(Instant.now());
 	}
 	
-	protected StoragePermission(StorageConfig config, User user) {
+	public StoragePermission(StorageConfig config, User user) {
 		this();
 		this.storageConfig = config;
 		this.user = user;

@@ -1,10 +1,9 @@
 package benchly.model;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
 
@@ -13,8 +12,6 @@ import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
-
-import benchly.database.StorageConfigDao;
 
 @DatabaseTable(tableName = "storage_config")
 public class StorageConfig extends Model {
@@ -169,10 +166,6 @@ public class StorageConfig extends Model {
 		return this.accessPermissions;
 	}
 
-	public void addAccessPermissionFor(User user) throws SQLException {
-		StorageConfigDao.addPermissionForUser(this, new StoragePermission(this, user));
-	}
-	
 	public ForeignCollection<StorageFileMeta> getFilesMeta() {
 		return this.filesMeta;
 	}

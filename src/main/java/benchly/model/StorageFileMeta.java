@@ -20,7 +20,7 @@ public class StorageFileMeta extends Model {
 	@Expose(deserialize = false)
 	private long id;
 
-	@DatabaseField(columnName = "storageConfig", canBeNull = false, foreign = true, foreignAutoRefresh = false, index = true)
+	@DatabaseField(columnName = "storageConfig", canBeNull = false, foreign = true, index = true)
 	@Expose(deserialize = false)
 	private StorageConfig storageConfig;
 

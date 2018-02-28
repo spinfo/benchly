@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
-import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
+import com.j256.ormlite.stmt.Where;
 
+import benchly.model.User;
 import benchly.model.Workflow;
 import benchly.util.RequestUtil.PaginationParams;
 
@@ -20,29 +22,35 @@ public class WorkflowDao {
 	private static final Logger LOG = LoggerFactory.getLogger(WorkflowDao.class);
 
 	public static long getCountOfLatestVersions() throws SQLException {
-		return dao().queryBuilder().where().eq("latestVersion", true).countOf();
+		return whereNotDeleted().and().eq("latestVersion", true).countOf();
 	}
 
 	public static Workflow fetchById(long workflowId) throws SQLException {
-		return dao().queryForId(workflowId);
+		return whereNotDeleted().and().idEq(workflowId).queryForFirst();
 	}
 
 	public static Workflow fetchLatestVersion(String versionId) throws SQLException {
-		return dao().queryBuilder().where().eq("latestVersion", true).and().eq("versionId", versionId).queryForFirst();
+		return whereNotDeleted().and().eq("latestVersion", true).and().eq("versionId", versionId).queryForFirst();
 	}
-	
+
 	public static Workflow fetchSpecificVersion(long id, String versionId) throws SQLException {
-		// querying for id only would suffice but we want to make sure that the version in question exists
-		return dao().queryBuilder().where().eq("versionId", versionId).and().eq("id", id).queryForFirst();
+		// querying for id only would suffice but we want to make sure that the version
+		// in question exists
+		return whereNotDeleted().and().eq("versionId", versionId).and().eq("id", id).queryForFirst();
 	}
 
 	public static List<Workflow> fetchLatestVersions(PaginationParams pagination) throws SQLException {
-		return dao().queryBuilder().limit(pagination.limit).offset(pagination.offset).where().eq("latestVersion", true)
-				.query();
+		QueryBuilder<Workflow, Long> builder = dao().queryBuilder();
+		builder.setWhere(whereNotDeleted().and().eq("latestVersion", true));
+		builder.limit(pagination.limit).offset(pagination.offset);
+		return builder.query();
 	}
 
 	public static List<Workflow> fetchVersionsOf(Workflow workflow) throws SQLException {
-		return dao().queryBuilder().orderBy("createdAt", false).where().eq("versionId", workflow.getVersionId()).query();
+		QueryBuilder<Workflow, Long> builder = dao().queryBuilder();
+		builder.setWhere(whereNotDeleted().and().eq("versionId", workflow.getVersionId()));
+		builder.orderBy("createdAt", false);
+		return builder.query();
 	}
 
 	public static int save(final Workflow workflow) throws SQLException {
@@ -69,10 +77,24 @@ public class WorkflowDao {
 		return insertedRows;
 	}
 
-	public static int destroy(Workflow workflow) throws SQLException {
-		DeleteBuilder<Workflow, Long> delete = dao().deleteBuilder();
-		delete.where().eq("versionId", workflow.getVersionId());
-		return delete.delete();
+	public static int setDeleted(Workflow workflow) throws SQLException {
+		UpdateBuilder<Workflow, Long> builder = getSetDeletedBuilder();
+		builder.where().idEq(workflow.getId());
+		return builder.update();
+	}
+
+	public static int setDeletedWhereAuthorIs(User author) throws SQLException {
+		UpdateBuilder<Workflow, Long> builder = getSetDeletedBuilder();
+		builder.where().eq("author", author);
+		return builder.update();
+	}
+
+	private static Where<Workflow, Long> whereNotDeleted() throws SQLException {
+		return dao().queryBuilder().where().eq("isDeleted", false);
+	}
+
+	private static UpdateBuilder<Workflow, Long> getSetDeletedBuilder() throws SQLException {
+		return dao().updateBuilder().updateColumnValue("isDeleted", true);
 	}
 
 	private static Dao<Workflow, Long> dao() {

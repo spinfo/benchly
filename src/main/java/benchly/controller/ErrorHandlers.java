@@ -1,8 +1,5 @@
 package benchly.controller;
 
-import static spark.Spark.internalServerError;
-import static spark.Spark.notFound;
-
 import java.sql.SQLException;
 
 import org.slf4j.Logger;
@@ -22,21 +19,31 @@ public class ErrorHandlers {
 	// a resource not found error is shown to the user with a warning
 	public static ExceptionHandler<ResourceNotFoundError> resourceNotFound = (e, request, response) -> {
 		SessionUtil.addWarningMessage(request, e.getMessage());
-		notFound(JsonTransformer.renderWithoutContent(request));
+		response.body(JsonTransformer.renderWithoutContent(request));
+		response.status(404);
 	};
 	
 	// the handler for internal errors will output the exception's message to the user
 	// and generally log the message
 	public static ExceptionHandler<InternalServerError> internalError = (e, request, response) -> {
-		LOG.error(e.getMessage());
-		SessionUtil.addErrorMessage(request, e.getMessage());
-		internalServerError(JsonTransformer.renderWithoutContent(request));
+		String msg = e.getMessage();
+		if (e.getCause() != null) {
+			msg += " CAUSED BY: ";
+			msg += e.getCause().getMessage();
+		}
+
+		LOG.debug("In internal error handler");
+		LOG.error(msg);
+		e.printStackTrace();
+		SessionUtil.addErrorMessage(request, msg);
+
+		response.body(JsonTransformer.renderWithoutContent(request));
+		response.status(500);
 	};
 	
 	// an SQL exception is logged quietly, a vague general message is shown to the user
 	public static ExceptionHandler<SQLException> sqlException = (e, request, response) -> {
-		LOG.error(e.getMessage());
-		e.printStackTrace();
+		LOG.debug("In sql handler");
 		internalError.handle(new InternalServerError("Unexpected error during database access.", e), request, response);
 	};
 	
@@ -50,6 +57,7 @@ public class ErrorHandlers {
 	// on an invalid model, the validation messages are shown to the user 
 	public static ExceptionHandler<InvalidModelException> invalidModel = (e, request, response) -> {
 		for (String message : e.getModel().getErrorMessages()) {
+			LOG.debug("Invalid model (" + e.getModel().getClass() + "): " + message);
 			SessionUtil.addErrorMessage(request, message);
 		}
 		invalidRequest.handle(e, request, response);
