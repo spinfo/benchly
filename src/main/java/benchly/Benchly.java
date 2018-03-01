@@ -10,6 +10,7 @@ import static spark.Spark.put;
 
 import java.sql.SQLException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.mgt.SecurityManager;
@@ -88,6 +89,14 @@ public class Benchly {
 				get("/:id", StorageController.show);
 				put("/:id", StorageController.update);
 				delete("/:id", StorageController.destroy);
+
+				path("/:id/files", () -> {
+					post("", StorageController.uploadFile);
+					get("/:fileId", StorageController.showFileMeta);
+					get("/:fileId/download", StorageController.downloadFile);
+					post("/:fileId", StorageController.replaceFile);
+					delete("/:fileId", StorageController.destroyFile);
+				});
 			});
 		});
 
@@ -96,10 +105,12 @@ public class Benchly {
 		post("*", notFoundRoute);
 		delete("*", notFoundRoute);
 
-		// All our api routes return json even those that throw exceptions, set up the
-		// response headers accordingly
+		// All the api routes return json (even on exception) except for the files
+		// download route which might return different results based on the 
 		afterAfter("*", (request, response) -> {
-			response.type("application/json");
+			if (StringUtils.isBlank(response.type())) {
+				response.type("application/json");
+			}
 		});
 
 		// Exceptions that are caught from the routes trigger redirecting or other

@@ -21,13 +21,17 @@ public class RequestUtil {
 	}
 
 	public static long parseIdParam(Request request) {
-		long result = longConvert(request.params(":id"), -1L);
+		return parseIdParam(request, ":id");
+	}
+
+	public static long parseIdParam(Request request, String paramName) {
+		long result = longConvert(request.params(paramName), -1L);
 		if (result < 0) {
-			LOG.warn("Invalid id value in request: " + result);
+			LOG.warn(String.format("Param '%s' not present in request '%s'", paramName, request.pathInfo()));
 		}
 		return result;
 	}
-	
+
 	public static String parseUuidParam(Request request) {
 		String result = request.params(":uuid");
 		if (result == null) {

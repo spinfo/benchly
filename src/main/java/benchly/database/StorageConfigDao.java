@@ -105,6 +105,23 @@ public class StorageConfigDao {
 		return bulkUpdateForStorageConfig(permissionDao(), config, toPersist);
 	}
 
+	// Return the file meta information given by the id, but only if it is linked to the given config
+	public static StorageFileMeta fetchFileMeta(StorageConfig config, long fileId) throws SQLException {
+		return fileMetaDao().queryBuilder().where().eq("storageConfig", config).and().eq("id", fileId).queryForFirst();
+	}
+	
+	public static int create(StorageFileMeta fileMeta) throws SQLException {
+		return fileMetaDao().create(fileMeta);
+	}
+	
+	public static int update(StorageFileMeta fileMeta) throws SQLException {
+		return fileMetaDao().update(fileMeta);
+	}
+	
+	public static int delete(StorageFileMeta fileMeta) throws SQLException {
+		return fileMetaDao().delete(fileMeta);
+	}
+
 	public static int updateStorageFileMeta(StorageConfig config, Set<StorageFileMeta> fileInfos) throws SQLException {
 		// make sure that the right config id is set
 		Set<StorageFileMeta> toPersist = fileInfos.stream()

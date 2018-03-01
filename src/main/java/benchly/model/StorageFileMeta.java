@@ -47,6 +47,17 @@ public class StorageFileMeta extends Model {
 		this.retrievedAt = Timestamp.from(Instant.now());
 	}
 
+	public StorageFileMeta(StorageConfig config) {
+		this();
+		this.storageConfig = config;
+	}
+
+	public StorageFileMeta(StorageConfig config, String fileName, long size) {
+		this(config);
+		this.name = fileName;
+		this.size = size;
+	}
+
 	public static StorageFileMeta from(StorageConfig config, StorageMetadata storageMeta) {
 		StorageFileMeta result = new StorageFileMeta();
 
@@ -56,11 +67,6 @@ public class StorageFileMeta extends Model {
 		result.lastModified = storageMeta.getLastModified();
 
 		return result;
-	}
-
-	public StorageFileMeta(StorageConfig config) {
-		this();
-		this.storageConfig = config;
 	}
 
 	@Override

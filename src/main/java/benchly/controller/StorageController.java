@@ -1,13 +1,16 @@
 package benchly.controller;
 
+import java.io.InputStream;
 import java.sql.SQLException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import benchly.StorageWatcher;
+import benchly.StorageAccessor;
 import benchly.database.StorageConfigDao;
 import benchly.error.InvalidModelException;
 import benchly.error.ResourceNotFoundError;
@@ -17,6 +20,7 @@ import benchly.model.User;
 import benchly.util.RequestUtil;
 import spark.Request;
 import spark.Route;
+import spark.utils.StringUtils;
 
 public class StorageController extends Controller {
 
@@ -33,13 +37,13 @@ public class StorageController extends Controller {
 	public static Route show = (request, response) -> {
 		User user = ensureLoggedInUser(request, "Only registered users may view storage configurations.");
 		StorageConfig config = ensureStorageConfigFromRequest(request);
-		ensureUserMayViewCofnig(user, config, request);
+		ensureUserMayAccessConfig(user, config, request);
 
 		// if the refresh param is set to "true", fetch file information for the storage
 		// configuration
 		if (Boolean.parseBoolean(request.queryParams("refresh"))) {
 			LOG.info("Explicit request for file meta registered for config: " + config.getId());
-			Set<StorageFileMeta> fileMeta = StorageWatcher.getInstance().getFilesMeta(config);
+			Set<StorageFileMeta> fileMeta = StorageAccessor.getInstance().getFilesMeta(config);
 			StorageConfigDao.updateStorageFileMeta(config, fileMeta);
 			config = StorageConfigDao.fetchConfig(config.getId());
 		}
@@ -98,6 +102,67 @@ public class StorageController extends Controller {
 		return JsonTransformer.render(config, request);
 	};
 
+	public static Route showFileMeta = (request, response) -> {
+		StorageConfig config = ensureStorageConfigWithFileAccess(request);
+
+		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
+		return JsonTransformer.render(fileMeta, request);
+	};
+
+	public static Route downloadFile = (request, response) -> {
+		StorageConfig config = ensureStorageConfigWithFileAccess(request);
+		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
+
+		StorageAccessor.getInstance().streamFileToResponse(config, fileMeta, response.raw());
+		return 200;
+	};
+
+	public static Route uploadFile = (request, response) -> {
+		StorageConfig config = ensureStorageConfigWithFileAccess(request);
+
+		// the filename should be given in the query params
+		String fileName = request.queryParams("fileName");
+		if (StringUtils.isBlank(fileName)) {
+			fileName = "new-file";
+		}
+
+		InputStream in = request.raw().getInputStream();
+		StorageFileMeta fileMeta = StorageAccessor.getInstance().streamToNewFile(config, fileName, in);
+		
+		// TODO: Initialise a deferred refresh of the config's files instead?
+		fileMeta.setLastModified(Date.from(Instant.now()));
+		StorageConfigDao.create(fileMeta);
+
+		return JsonTransformer.render(fileMeta, request);
+	};
+	
+	public static Route replaceFile = (request, response) -> {
+		StorageConfig config = ensureStorageConfigWithFileAccess(request);
+		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
+		
+		InputStream in = request.raw().getInputStream();
+		StorageFileMeta newMeta = StorageAccessor.getInstance().streamToNewFile(config, fileMeta.getName(), in);
+		
+		// TODO: Initialise a deferred refresh of the config's files instead?
+		fileMeta.setSize(newMeta.getSize());
+		fileMeta.setRetrievedAt(newMeta.getRetrievedAt());
+		fileMeta.setLastModified(Date.from(Instant.now()));
+		StorageConfigDao.update(fileMeta);
+		
+		return JsonTransformer.render(fileMeta, request);
+	};
+	
+	public static Route destroyFile = (request, response) -> {
+		StorageConfig config = ensureStorageConfigWithFileAccess(request);
+		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
+		
+		StorageAccessor.getInstance().deleteFile(config, fileMeta);
+		// TODO: Initialise a deferred refresh of the config's files instead?
+		StorageConfigDao.delete(config);
+		
+		return JsonTransformer.render(fileMeta, request);
+	};
+
 	private static StorageConfig ensureStorageConfigFromRequest(Request request)
 			throws SQLException, ResourceNotFoundError {
 		long id = RequestUtil.parseIdParam(request);
@@ -109,7 +174,26 @@ public class StorageController extends Controller {
 		return config;
 	}
 
-	private static void ensureUserMayViewCofnig(User user, StorageConfig config, Request request) throws SQLException {
+	private static StorageFileMeta ensureFileMetaWithConfigFromRequest(StorageConfig config, Request request)
+			throws SQLException, ResourceNotFoundError {
+		long fileId = RequestUtil.parseIdParam(request, ":fileId");
+		StorageFileMeta fileMeta = StorageConfigDao.fetchFileMeta(config, fileId);
+		if (fileMeta == null) {
+			String msg = "No file information present for this storage configuration and fileId. (config: %d, file: %d)";
+			throw new ResourceNotFoundError(String.format(msg, config.getId(), fileId));
+		}
+		return fileMeta;
+	}
+	
+	private static StorageConfig ensureStorageConfigWithFileAccess(Request request) throws SQLException, ResourceNotFoundError {
+		User user = ensureLoggedInUser(request, "Only registered users may access files.");
+		StorageConfig config = ensureStorageConfigFromRequest(request);
+		ensureUserMayAccessConfig(user, config, request);
+		return config;
+	}
+
+	private static void ensureUserMayAccessConfig(User user, StorageConfig config, Request request)
+			throws SQLException {
 		if (!user.isAdmin() && !userOwnsConfig(user, config) && !StorageConfigDao.userHasAccess(user, config)) {
 			haltForbbiden(request, "You have insufficient permissions to view this storage configuration.");
 		}
