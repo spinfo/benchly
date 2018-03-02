@@ -12,8 +12,8 @@ public class StorageAccessError extends Exception {
 		super(message);
 	}
 	
-	public StorageAccessError(Throwable cause) {
-		super(cause);
+	public StorageAccessError(String message, Throwable cause) {
+		super(message, cause);
 	}
 	
 }

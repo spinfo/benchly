@@ -145,7 +145,7 @@ public class StorageAccessor {
 			LOG.debug("Multipart upload finished, eTag: " + eTag);
 			return new StorageFileMeta(config, fileName, totalSize);
 		} catch (IOException e) {
-			throw new StorageAccessError(e);
+			throw new StorageAccessError("An IOError occured during storage access.", e);
 		}
 	}
 
@@ -198,7 +198,7 @@ public class StorageAccessor {
 		try {
 			context.getBlobStore().removeBlob(config.getContainer(), fileMeta.getName());
 		} catch (ContainerNotFoundException e) {
-			throw new StorageAccessError(e);
+			throw new StorageAccessError("Container not found: " + config.getContainer(), e);
 		}
 	}
 
