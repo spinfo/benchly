@@ -60,7 +60,7 @@ public class UserDao {
 			@Override
 			public Integer call() throws Exception {
 				// delete all information about the users storage for good
-				StorageConfigDao.deleteAllWithOwner(user);
+				StorageDao.deleteAllWithOwner(user);
 				WorkflowDao.setDeletedWhereAuthorIs(user);
 				
 				// remove personal information from the user and set the deletion flag

@@ -20,9 +20,9 @@ import benchly.model.StorageFileMeta;
 import benchly.model.StoragePermission;
 import benchly.model.User;
 
-public class StorageConfigDao {
+public class StorageDao {
 
-	private static final Logger LOG = LoggerFactory.getLogger(StorageConfigDao.class);
+	private static final Logger LOG = LoggerFactory.getLogger(StorageDao.class);
 
 	public static StorageConfig fetchConfig(long id) throws SQLException {
 		return dao().queryForId(id);

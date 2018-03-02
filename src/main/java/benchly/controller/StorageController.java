@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import benchly.StorageAccessor;
-import benchly.database.StorageConfigDao;
+import benchly.database.StorageDao;
 import benchly.error.InvalidModelException;
 import benchly.error.ResourceNotFoundError;
 import benchly.model.StorageConfig;
@@ -30,7 +30,7 @@ public class StorageController extends Controller {
 		// no pagination option on purpose as we do not expect users to possess that
 		// many storage configurations and this only shows an index on a per-user basis
 		User user = ensureLoggedInUser(request, "Only registered users may view storage configurations.");
-		List<StorageConfig> configs = StorageConfigDao.fetchAcessible(user);
+		List<StorageConfig> configs = StorageDao.fetchAcessible(user);
 		return JsonTransformer.render(configs, request);
 	};
 
@@ -44,8 +44,8 @@ public class StorageController extends Controller {
 		if (Boolean.parseBoolean(request.queryParams("refresh"))) {
 			LOG.info("Explicit request for file meta registered for config: " + config.getId());
 			Set<StorageFileMeta> fileMeta = StorageAccessor.getInstance().getFilesMeta(config);
-			StorageConfigDao.updateStorageFileMeta(config, fileMeta);
-			config = StorageConfigDao.fetchConfig(config.getId());
+			StorageDao.updateStorageFileMeta(config, fileMeta);
+			config = StorageDao.fetchConfig(config.getId());
 		}
 		// only if the parameter credential is set, generate an encrypted credential to
 		// show
@@ -65,7 +65,7 @@ public class StorageController extends Controller {
 		if (!config.validate()) {
 			throw new InvalidModelException(config);
 		}
-		long rowCount = StorageConfigDao.create(config);
+		long rowCount = StorageDao.create(config);
 		ensureRowCountIsOne(rowCount, "create storage configuration");
 
 		return JsonTransformer.render(config, request);
@@ -84,7 +84,7 @@ public class StorageController extends Controller {
 		if (!target.validate()) {
 			throw new InvalidModelException(target);
 		}
-		long rowCount = StorageConfigDao.update(target);
+		long rowCount = StorageDao.update(target);
 		ensureRowCountIsOne(rowCount, "update storage configuration");
 
 		return JsonTransformer.render(target, request);
@@ -96,7 +96,7 @@ public class StorageController extends Controller {
 
 		ensureUserMayEditConfig(user, config, request);
 
-		int rowCount = StorageConfigDao.delete(config);
+		int rowCount = StorageDao.delete(config);
 		ensureRowCountIsOne(rowCount, "delete storage configuration");
 
 		return JsonTransformer.render(config, request);
@@ -131,7 +131,7 @@ public class StorageController extends Controller {
 		
 		// TODO: Initialise a deferred refresh of the config's files instead?
 		fileMeta.setLastModified(Date.from(Instant.now()));
-		StorageConfigDao.create(fileMeta);
+		StorageDao.create(fileMeta);
 
 		return JsonTransformer.render(fileMeta, request);
 	};
@@ -147,7 +147,7 @@ public class StorageController extends Controller {
 		fileMeta.setSize(newMeta.getSize());
 		fileMeta.setRetrievedAt(newMeta.getRetrievedAt());
 		fileMeta.setLastModified(Date.from(Instant.now()));
-		StorageConfigDao.update(fileMeta);
+		StorageDao.update(fileMeta);
 		
 		return JsonTransformer.render(fileMeta, request);
 	};
@@ -158,7 +158,7 @@ public class StorageController extends Controller {
 		
 		StorageAccessor.getInstance().deleteFile(config, fileMeta);
 		// TODO: Initialise a deferred refresh of the config's files instead?
-		StorageConfigDao.delete(config);
+		StorageDao.delete(config);
 		
 		return JsonTransformer.render(fileMeta, request);
 	};
@@ -166,7 +166,7 @@ public class StorageController extends Controller {
 	private static StorageConfig ensureStorageConfigFromRequest(Request request)
 			throws SQLException, ResourceNotFoundError {
 		long id = RequestUtil.parseIdParam(request);
-		StorageConfig config = StorageConfigDao.fetchConfig(id);
+		StorageConfig config = StorageDao.fetchConfig(id);
 
 		if (config == null) {
 			throw new ResourceNotFoundError("No storage configuration with id: '" + id + "'");
@@ -177,7 +177,7 @@ public class StorageController extends Controller {
 	private static StorageFileMeta ensureFileMetaWithConfigFromRequest(StorageConfig config, Request request)
 			throws SQLException, ResourceNotFoundError {
 		long fileId = RequestUtil.parseIdParam(request, ":fileId");
-		StorageFileMeta fileMeta = StorageConfigDao.fetchFileMeta(config, fileId);
+		StorageFileMeta fileMeta = StorageDao.fetchFileMeta(config, fileId);
 		if (fileMeta == null) {
 			String msg = "No file information present for this storage configuration and fileId. (config: %d, file: %d)";
 			throw new ResourceNotFoundError(String.format(msg, config.getId(), fileId));
@@ -194,7 +194,7 @@ public class StorageController extends Controller {
 
 	private static void ensureUserMayAccessConfig(User user, StorageConfig config, Request request)
 			throws SQLException {
-		if (!user.isAdmin() && !userOwnsConfig(user, config) && !StorageConfigDao.userHasAccess(user, config)) {
+		if (!user.isAdmin() && !userOwnsConfig(user, config) && !StorageDao.userHasAccess(user, config)) {
 			haltForbbiden(request, "You have insufficient permissions to view this storage configuration.");
 		}
 	}
