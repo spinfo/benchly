@@ -10,13 +10,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import benchly.StorageAccessor;
 import benchly.database.StorageDao;
 import benchly.error.InvalidModelException;
 import benchly.error.ResourceNotFoundError;
 import benchly.model.StorageConfig;
 import benchly.model.StorageFileMeta;
 import benchly.model.User;
+import benchly.remote.StorageAccess;
 import benchly.util.RequestUtil;
 import spark.Request;
 import spark.Route;
@@ -43,7 +43,7 @@ public class StorageController extends Controller {
 		// configuration
 		if (Boolean.parseBoolean(request.queryParams("refresh"))) {
 			LOG.info("Explicit request for file meta registered for config: " + config.getId());
-			Set<StorageFileMeta> fileMeta = StorageAccessor.getInstance().getFilesMeta(config);
+			Set<StorageFileMeta> fileMeta = StorageAccess.getInstance().getFilesMeta(config);
 			StorageDao.updateStorageFileMeta(config, fileMeta);
 			config = StorageDao.fetchConfig(config.getId());
 		}
@@ -113,7 +113,7 @@ public class StorageController extends Controller {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
 
-		StorageAccessor.getInstance().streamFileToResponse(config, fileMeta, response.raw());
+		StorageAccess.getInstance().streamFileToResponse(config, fileMeta, response.raw());
 		return 200;
 	};
 
@@ -127,7 +127,7 @@ public class StorageController extends Controller {
 		}
 
 		InputStream in = request.raw().getInputStream();
-		StorageFileMeta fileMeta = StorageAccessor.getInstance().streamToNewFile(config, fileName, in);
+		StorageFileMeta fileMeta = StorageAccess.getInstance().streamToNewFile(config, fileName, in);
 		
 		// TODO: Initialise a deferred refresh of the config's files instead?
 		fileMeta.setLastModified(Date.from(Instant.now()));
@@ -141,7 +141,7 @@ public class StorageController extends Controller {
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
 		
 		InputStream in = request.raw().getInputStream();
-		StorageFileMeta newMeta = StorageAccessor.getInstance().streamToNewFile(config, fileMeta.getName(), in);
+		StorageFileMeta newMeta = StorageAccess.getInstance().streamToNewFile(config, fileMeta.getName(), in);
 		
 		// TODO: Initialise a deferred refresh of the config's files instead?
 		fileMeta.setSize(newMeta.getSize());
@@ -156,7 +156,7 @@ public class StorageController extends Controller {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
 		
-		StorageAccessor.getInstance().deleteFile(config, fileMeta);
+		StorageAccess.getInstance().deleteFile(config, fileMeta);
 		// TODO: Initialise a deferred refresh of the config's files instead?
 		StorageDao.delete(config);
 		

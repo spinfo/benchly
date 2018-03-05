@@ -1,4 +1,4 @@
-package benchly;
+package benchly.remote;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,23 +36,23 @@ import benchly.model.StorageFileMeta;
 
 // TODO: This is messy and lends itself to some refactoring
 // TODO: Should storage access be synchronised such that each storage config may only be accessed on one thread?
-public class StorageAccessor {
+public class StorageAccess {
 
-	private static final Logger LOG = LoggerFactory.getLogger(StorageAccessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(StorageAccess.class);
 
-	private static StorageAccessor instance = null;
+	private static StorageAccess instance = null;
 
 	private Map<Long, BlobStoreContext> createdContexts;
 
 	// private constructor for the singleton pattern
-	private StorageAccessor() {
+	private StorageAccess() {
 		createdContexts = Collections.synchronizedMap(new HashMap<>());
 	}
 
 	// return the singleton instance
-	public static StorageAccessor getInstance() {
+	public static StorageAccess getInstance() {
 		if (instance == null) {
-			instance = new StorageAccessor();
+			instance = new StorageAccess();
 		}
 		return instance;
 	}

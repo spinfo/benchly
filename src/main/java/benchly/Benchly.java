@@ -9,6 +9,9 @@ import static spark.Spark.post;
 import static spark.Spark.put;
 
 import java.sql.SQLException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -40,11 +43,21 @@ public class Benchly {
 		throw new ResourceNotFoundError(msg);
 	};
 
+	// an executor service that will run periodic tasks for us
+	private static ScheduledExecutorService taskScheduler;
+
 	public static void main(String[] args) {
 
-		// start a single JobQueue responsible for starting jobs
-		Thread jobQueueThread = new Thread(new JobQueue());
-		jobQueueThread.start();
+		// initialize the scheduler with the periodic tasks
+		taskScheduler = Executors.newScheduledThreadPool(50);
+
+		// schedule a warcher to regularly check up on the servers connected to us
+		taskScheduler.scheduleAtFixedRate(new ServerContactWatcher(), 5, 10, TimeUnit.SECONDS);
+
+		// schedule watchers to periodically check up on runninh jobs or jobs that
+		// should be started
+		taskScheduler.scheduleAtFixedRate(new JobScheduler(taskScheduler, 500), 10, 10, TimeUnit.SECONDS);
+		taskScheduler.scheduleAtFixedRate(new JobWatcher(taskScheduler, 60), 15, 10, TimeUnit.SECONDS);
 
 		// Initialise the Shiro security manager
 		final SecurityManager securityManager = (new IniSecurityManagerFactory("classpath:shiro.ini")).createInstance();
@@ -106,7 +119,7 @@ public class Benchly {
 		delete("*", notFoundRoute);
 
 		// All the api routes return json (even on exception) except for the files
-		// download route which might return different results based on the 
+		// download route which might return different results based on the
 		afterAfter("*", (request, response) -> {
 			if (StringUtils.isBlank(response.type())) {
 				response.type("application/json");

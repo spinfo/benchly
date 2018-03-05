@@ -11,54 +11,78 @@ import com.j256.ormlite.table.DatabaseTable;
 public class Job extends Model {
 
 	public static enum State {
-		PENDING, PROCESSING, CANCELED, FINISHED
+		PENDING, SUBMITTED, FAILED, SUCCEEDED
 	}
 
 	@DatabaseField(columnName = "id", generatedId = true)
 	@Expose(deserialize = false)
 	private long id;
-	
-	@DatabaseField(columnName = "state")
+
+	@DatabaseField(columnName = "state", canBeNull = false, index = true)
+	@Expose(deserialize = false)
 	private State state;
-	
+
 	@DatabaseField(columnName = "owner", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
+	@Expose
 	private User owner;
 
 	@DatabaseField(columnName = "workflow", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
+	@Expose
 	private Workflow workflow;
 
-	@DatabaseField
-	private int priority;
+	@DatabaseField(columnName = "executingServer", canBeNull = true, foreign = true, foreignAutoRefresh = true, index = true)
+	@Expose(deserialize = false)
+	private ServerContact executingServer;
 
 	// the time estimated by the user in seconds
-	@DatabaseField
+	@DatabaseField(columnName = "estimatedTime", index = true)
+	@Expose
 	private long estimatedTime;
 
 	// the time the job actually took up until now
-	@DatabaseField
-	private long timeProcessing;
+	@DatabaseField(columnName = "estimatedMemory", index = true)
+	@Expose
+	private long estimatedMemory;
 
-	// the output size estimated by the user in bytes
-	@DatabaseField
-	private long estimatedOutputSize;
+	// how often a try was made to submit the job to multiple servers and all
+	// attempts failed
+	@DatabaseField(columnName = "failedSubmittalAttempts", canBeNull = false)
+	@Expose
+	private int failedSubmittalAttempts = 0;
 
-	// the last output size actually reported for this workflow
-	@DatabaseField
-	private long currentOutputSize;
-	
+	// when the job was successfully submitted to a server for processing
+	@DatabaseField(columnName = "submittedAt", canBeNull = true, index = true)
+	@Expose(deserialize = false)
+	private Timestamp submittedAt;
+
+	@DatabaseField(columnName = "endedAt", canBeNull = true, index = true)
+	@Expose(deserialize = false)
+	private Timestamp endedAt;
+
 	@DatabaseField(columnName = "createdAt", canBeNull = false, index = true)
+	@Expose(deserialize = false)
 	private Timestamp createdAt;
-	
+
+	// when the remote was last asked for information about this job
+	@DatabaseField(columnName = "lastChecked", canBeNull = true)
+	@Expose(deserialize = false)
+	private Timestamp lastChecked;
+
 	public Job() {
+		this.state = State.PENDING;
 		this.createdAt = Timestamp.from(Instant.now());
 	}
-	
+
 	public Job(User owner, Workflow workflow) {
 		this();
 		this.owner = owner;
 		this.workflow = workflow;
 	}
-	
+
+	public long getId() {
+		return id;
+	}
+
 	public State getState() {
 		return state;
 	}
@@ -83,12 +107,8 @@ public class Job extends Model {
 		this.workflow = workflow;
 	}
 
-	public int getPriority() {
-		return priority;
-	}
-
-	public void setPriority(int priority) {
-		this.priority = priority;
+	public ServerContact getExecutingServer() {
+		return executingServer;
 	}
 
 	public long getEstimatedTime() {
@@ -99,32 +119,53 @@ public class Job extends Model {
 		this.estimatedTime = estimatedTime;
 	}
 
-	public long getTimeProcessing() {
-		return timeProcessing;
+	public long getEstimatedMemory() {
+		return estimatedMemory;
 	}
 
-	public void setTimeProcessing(long timeProcessing) {
-		this.timeProcessing = timeProcessing;
+	public void setEstimatedMemory(long estimatedMemory) {
+		this.estimatedMemory = estimatedMemory;
 	}
 
-	public long getEstimatedOutputSize() {
-		return estimatedOutputSize;
+	public int incrementFailedSubmittalAttempts() {
+		failedSubmittalAttempts += 1;
+		return getFailedSubmittalAttempts();
 	}
 
-	public void setEstimatedOutputSize(long estimatedOutputSize) {
-		this.estimatedOutputSize = estimatedOutputSize;
+	public int getFailedSubmittalAttempts() {
+		return failedSubmittalAttempts;
 	}
 
-	public long getCurrentOutputSize() {
-		return currentOutputSize;
+	public Timestamp getSubmittedAt() {
+		return submittedAt;
 	}
 
-	public void setCurrentOutputSize(long currentOutputSize) {
-		this.currentOutputSize = currentOutputSize;
+	public void setSubmittedNow(ServerContact executingContact) {
+		this.executingServer = executingContact;
+		this.state = State.SUBMITTED;
+		this.submittedAt = Timestamp.from(Instant.now());
 	}
 
-	public long getId() {
-		return id;
+	public void setFailedOn(Timestamp timestamp) {
+		this.state = State.FAILED;
+		this.endedAt = timestamp;
+	}
+
+	public void setFailedNow() {
+		setFailedOn(Timestamp.from(Instant.now()));
+	}
+
+	public void setSucceededOn(Timestamp timestamp) {
+		this.state = State.SUCCEEDED;
+		this.endedAt = timestamp;
+	}
+
+	public Timestamp getLastChecked() {
+		return lastChecked;
+	}
+
+	public void setLastCheckedNow() {
+		this.lastChecked = Timestamp.from(Instant.now());
 	}
 
 	@Override

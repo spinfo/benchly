@@ -4,9 +4,6 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -17,9 +14,11 @@ import benchly.model.User;
 import benchly.model.Workflow;
 import benchly.util.RequestUtil.PaginationParams;
 
+/**
+ * Workflows have multiple versions. Those belonging to the same version bear
+ * the same versionId.
+ */
 public class WorkflowDao {
-
-	private static final Logger LOG = LoggerFactory.getLogger(WorkflowDao.class);
 
 	public static long getCountOfLatestVersions() throws SQLException {
 		return whereNotDeleted().and().eq("latestVersion", true).countOf();
@@ -66,7 +65,6 @@ public class WorkflowDao {
 				updateBuilder.updateColumnValue("latestVersion", false).where().eq("versionId",
 						workflow.getVersionId());
 				int rows = updateBuilder.update();
-				LOG.debug("Updated " + rows + " other rows when inserting new workflow.");
 
 				// insert the new workflow
 				rows = dao.create(workflow);
