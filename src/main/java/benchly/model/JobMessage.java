@@ -6,7 +6,9 @@ import java.util.UUID;
 
 import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
+@DatabaseTable(tableName = "job_message")
 public class JobMessage {
 
 	// a message from a remote server may have a uuid set
@@ -40,7 +42,7 @@ public class JobMessage {
 		this.uuid = uuid;
 	}
 
-	// constructor for a local message, origination from this server
+	// constructor for a local message, originating from this server
 	public JobMessage(Job job, String content) {
 		this();
 		this.job = job;

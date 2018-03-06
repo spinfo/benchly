@@ -9,7 +9,7 @@ import benchly.model.StatusReport;
 import benchly.remote.ServerHttp.ResponseCallback;
 
 public class ServerAccess {
-
+	
 	/**
 	 * @return A StatusReport indicating the contact's state.
 	 * @throws ServerAccessError On a response indicating failure or an unparseable response.
