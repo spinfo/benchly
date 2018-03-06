@@ -52,7 +52,7 @@ public class Benchly {
 		taskScheduler = Executors.newScheduledThreadPool(50);
 
 		// schedule a warcher to regularly check up on the servers connected to us
-		taskScheduler.scheduleAtFixedRate(new ServerContactWatcher(), 5, 10, TimeUnit.SECONDS);
+		taskScheduler.scheduleAtFixedRate(new ServerContactWatcher(taskScheduler, 120), 5, 10, TimeUnit.SECONDS);
 
 		// schedule watchers to periodically check up on runninh jobs or jobs that
 		// should be started
