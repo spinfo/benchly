@@ -14,14 +14,14 @@ public class StoragePermission extends Model {
 	@Expose(deserialize = false)
 	private long id;
 
-	@DatabaseField(columnName = "storageConfig", canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndexName = "configToUser")
+	@DatabaseField(columnName = "storageConfig", canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndexName = "configToUser", index = true)
 	private StorageConfig storageConfig;
 
-	@DatabaseField(columnName = "user", canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndexName = "configToUser")
+	@DatabaseField(columnName = "user", canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndexName = "configToUser", index = true)
 	@Expose
 	private User user;
 
-	@DatabaseField(columnName = "createdAt", canBeNull = false, index = true)
+	@DatabaseField(columnName = "createdAt", canBeNull = false)
 	@Expose(serialize = false)
 	private Timestamp createdAt;
 

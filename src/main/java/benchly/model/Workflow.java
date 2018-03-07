@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.annotations.Expose;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -24,11 +25,11 @@ public class Workflow extends Model {
 	@Expose
 	private String versionId;
 
-	@DatabaseField(columnName = "name")
+	@DatabaseField(columnName = "name", dataType = DataType.LONG_STRING)
 	@Expose
 	private String name;
 
-	@DatabaseField(columnName = "definition")
+	@DatabaseField(columnName = "definition", dataType = DataType.LONG_STRING)
 	@Expose
 	private String definition;
 
@@ -36,7 +37,7 @@ public class Workflow extends Model {
 	@Expose
 	private User author;
 
-	@DatabaseField(columnName = "isDeleted", canBeNull = false)
+	@DatabaseField(columnName = "isDeleted", canBeNull = false, index = true)
 	@Expose(deserialize = false)
 	private boolean isDeleted = false;
 

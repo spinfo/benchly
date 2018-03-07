@@ -23,10 +23,10 @@ public class User extends Model {
 	@Expose(deserialize = false)
 	private long id;
 
-	@DatabaseField(columnName = "name", index = true)
+	@DatabaseField(columnName = "name", index = true, width = 1024)
 	@Expose
 	private String name = "";
-	
+
 	@Expose(serialize = false)
 	private String password;
 
@@ -36,7 +36,7 @@ public class User extends Model {
 	@DatabaseField(dataType = DataType.BYTE_ARRAY, canBeNull = false)
 	private byte[] passwordSalt;
 
-	@DatabaseField(columnName = "email", index = true)
+	@DatabaseField(columnName = "email", index = true, width = 1024)
 	@Expose
 	private String email = "";
 
@@ -44,7 +44,7 @@ public class User extends Model {
 	@Expose
 	private boolean isAdmin = false;
 
-	@DatabaseField(columnName = "isDeleted", canBeNull = false)
+	@DatabaseField(columnName = "isDeleted", canBeNull = false, index = true)
 	@Expose(deserialize = false)
 	private boolean isDeleted = false;
 
@@ -67,10 +67,10 @@ public class User extends Model {
 		setName(name);
 		setEmail(email);
 		setPassword(password);
-		
+
 		initializeHashAndSalt();
 	}
-	
+
 	public void initializeHashAndSalt() {
 		// generate a random salt for the new user
 		ByteSource salt = (new SecureRandomNumberGenerator()).nextBytes();
@@ -94,8 +94,6 @@ public class User extends Model {
 		this.name = name;
 	}
 
-	
-	
 	public String getPasswordHash() {
 		return passwordHash;
 	}
@@ -151,7 +149,7 @@ public class User extends Model {
 	@Override
 	public boolean validate() {
 		valid = true;
-		
+
 		if (StringUtils.isBlank(this.name)) {
 			addError("Name cannot be empty.");
 		}

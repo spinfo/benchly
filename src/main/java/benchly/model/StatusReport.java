@@ -3,6 +3,7 @@ package benchly.model;
 import java.sql.Timestamp;
 
 import com.google.gson.annotations.Expose;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -15,7 +16,7 @@ public class StatusReport {
 	@DatabaseField(columnName = "serverContact", foreign = true, foreignAutoRefresh = false)
 	private ServerContact contact;
 
-	@DatabaseField(columnName = "name")
+	@DatabaseField(columnName = "name", dataType = DataType.LONG_STRING, width=1024)
 	@Expose
 	private String name;
 
@@ -47,7 +48,7 @@ public class StatusReport {
 	@Expose
 	private int runningJobs;
 
-	@DatabaseField(columnName = "collectedAt")
+	@DatabaseField(columnName = "collectedAt", index = true)
 	@Expose
 	private Timestamp collectedAt;
 

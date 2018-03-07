@@ -31,9 +31,7 @@ public class ErrorHandlers {
 			msg += " CAUSED BY: ";
 			msg += e.getCause().getMessage();
 		}
-
-		LOG.debug("In internal error handler");
-		LOG.error(msg);
+		LOG.error("Internal error: " + msg);
 		e.printStackTrace();
 		SessionUtil.addErrorMessage(request, msg);
 
@@ -44,7 +42,7 @@ public class ErrorHandlers {
 	// an SQL exception is logged quietly, a vague general message is shown to the
 	// user
 	public static ExceptionHandler<SQLException> sqlException = (e, request, response) -> {
-		LOG.debug("In sql handler");
+		LOG.error("SQL error with state: " + e.getSQLState());
 		internalError.handle(new InternalServerError("Unexpected error during database access.", e), request, response);
 	};
 

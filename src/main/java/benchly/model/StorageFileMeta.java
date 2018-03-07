@@ -7,6 +7,7 @@ import java.util.Date;
 import org.jclouds.blobstore.domain.StorageMetadata;
 
 import com.google.gson.annotations.Expose;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -24,7 +25,7 @@ public class StorageFileMeta extends Model {
 	private StorageConfig storageConfig;
 
 	// a file name
-	@DatabaseField
+	@DatabaseField(columnName = "name", dataType = DataType.LONG_STRING)
 	@Expose(deserialize = false)
 	private String name;
 
@@ -39,7 +40,7 @@ public class StorageFileMeta extends Model {
 	private Date lastModified;
 
 	// when this record was retrieved
-	@DatabaseField(columnName = "retrievedAt", canBeNull = false, index = true)
+	@DatabaseField(columnName = "retrievedAt", canBeNull = false)
 	@Expose(deserialize = false)
 	private Timestamp retrievedAt;
 

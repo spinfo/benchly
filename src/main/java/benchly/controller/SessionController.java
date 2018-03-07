@@ -85,7 +85,7 @@ public class SessionController extends Controller {
 		Subject subject = SecurityUtils.getSubject();
 
 		// Create an authentication token
-		UsernamePasswordToken token = new UsernamePasswordToken(user.getName(), password);
+		UsernamePasswordToken token = new UsernamePasswordToken(user.getEmail(), password);
 		token.setRememberMe(true);
 
 		// Authenticate the subject, this throws on failure

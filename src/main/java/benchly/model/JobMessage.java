@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.google.gson.annotations.Expose;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -26,12 +27,12 @@ public class JobMessage {
 	@DatabaseField(columnName = "origin", foreign = true, foreignAutoRefresh = false, index = true, canBeNull = true)
 	private ServerContact origin;
 
-	@DatabaseField(columnName = "content")
+	@DatabaseField(columnName = "content", dataType = DataType.LONG_STRING)
 	@Expose(deserialize = false)
 	private String content;
 
 	// the remote or local time of recording
-	@DatabaseField(columnName = "createdAt", index = true, canBeNull = false)
+	@DatabaseField(columnName = "createdAt", canBeNull = false)
 	private Timestamp recordedAt;
 
 	public JobMessage() {

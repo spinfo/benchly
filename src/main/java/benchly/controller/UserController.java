@@ -46,7 +46,7 @@ public class UserController extends Controller {
 
 		return JsonTransformer.renderPaginatedResult(users, request, pagination.limit, pagination.offset, amount);
 	};
-	
+
 	public static Route show = (request, response) -> {
 		ensureLoggedInUser(request, "Only logged in users may view other users information.");
 		User user = ensureUserFromRequesParams(request);

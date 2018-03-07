@@ -3,6 +3,7 @@ package benchly.model;
 import java.sql.Timestamp;
 
 import com.google.gson.annotations.Expose;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -19,29 +20,29 @@ public class ServerContact {
 	@Expose(deserialize = false)
 	private long id;
 
-	@DatabaseField(columnName ="reachability", canBeNull = false)
+	@DatabaseField(columnName ="reachability", canBeNull = false, index = true)
 	@Expose(deserialize = false)
 	private Reachability reachbility;
 
 	// a unique name by which the server identifies itself
-	@DatabaseField(columnName = "name", canBeNull = false, unique = true)
+	@DatabaseField(columnName = "name", canBeNull = false, unique = true, width=1024)
 	@Expose
 	private String name;
 
 	// the url by which the server is currently contacted
-	@DatabaseField(columnName = "endpoint", canBeNull = false)
+	@DatabaseField(columnName = "endpoint", canBeNull = false, dataType = DataType.LONG_STRING)
 	@Expose
 	private String endpoint;
 	
-	@DatabaseField(columnName = "approximateUsableMemory", canBeNull = true)
+	@DatabaseField(columnName = "approximateUsableMemory", canBeNull = true, index = true)
 	@Expose(deserialize = false)
 	private long approximateUsableMemory;
 
-	@DatabaseField(columnName = "approximateRunningJobs", canBeNull = true)
+	@DatabaseField(columnName = "approximateRunningJobs", canBeNull = true, index = true)
 	@Expose(deserialize = false)
 	private int approximateRunningJobs;
 	
-	@DatabaseField(columnName = "lastChecked", canBeNull = true)
+	@DatabaseField(columnName = "lastChecked", canBeNull = true, index = true)
 	@Expose(deserialize = false)
 	private Timestamp lastChecked;
 

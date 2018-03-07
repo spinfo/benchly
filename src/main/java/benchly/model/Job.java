@@ -51,11 +51,11 @@ public class Job extends Model {
 	private int failedSubmittalAttempts = 0;
 
 	// when the job was successfully submitted to a server for processing
-	@DatabaseField(columnName = "submittedAt", canBeNull = true, index = true)
+	@DatabaseField(columnName = "submittedAt", canBeNull = true)
 	@Expose(deserialize = false)
 	private Timestamp submittedAt;
 
-	@DatabaseField(columnName = "endedAt", canBeNull = true, index = true)
+	@DatabaseField(columnName = "endedAt", canBeNull = true)
 	@Expose(deserialize = false)
 	private Timestamp endedAt;
 

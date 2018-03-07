@@ -65,19 +65,20 @@ public class StorageDao {
 	public static int delete(List<StorageConfig> configs) throws SQLException {
 		// collect the ids to delete by
 		Set<Long> ids = configs.stream().map(c -> c.getId()).collect(Collectors.toSet());
-
-		// prepare the permissions and file meta deletes
-		DeleteBuilder<StoragePermission, Long> permissionDelete = permissionDao().deleteBuilder();
-		DeleteBuilder<StorageFileMeta, Long> fileMetaDelete = fileMetaDao().deleteBuilder();
-		permissionDelete.where().in("storageConfig", ids);
-		fileMetaDelete.where().in("storageConfig", ids);
-
+		
 		int result = TransactionManager.callInTransaction(dao().getConnectionSource(), new Callable<Integer>() {
 
 			@Override
 			public Integer call() throws Exception {
-				permissionDelete.delete();
-				fileMetaDelete.delete();
+				if (!ids.isEmpty()) {
+					// prepare the permissions and file meta deletes
+					DeleteBuilder<StoragePermission, Long> permissionDelete = permissionDao().deleteBuilder();
+					DeleteBuilder<StorageFileMeta, Long> fileMetaDelete = fileMetaDao().deleteBuilder();
+					permissionDelete.where().in("storageConfig", ids);
+					fileMetaDelete.where().in("storageConfig", ids);
+					permissionDelete.delete();
+					fileMetaDelete.delete();
+				}
 				return dao().delete(configs);
 			}
 		});
@@ -105,19 +106,20 @@ public class StorageDao {
 		return bulkUpdateForStorageConfig(permissionDao(), config, toPersist);
 	}
 
-	// Return the file meta information given by the id, but only if it is linked to the given config
+	// Return the file meta information given by the id, but only if it is linked to
+	// the given config
 	public static StorageFileMeta fetchFileMeta(StorageConfig config, long fileId) throws SQLException {
 		return fileMetaDao().queryBuilder().where().eq("storageConfig", config).and().eq("id", fileId).queryForFirst();
 	}
-	
+
 	public static int create(StorageFileMeta fileMeta) throws SQLException {
 		return fileMetaDao().create(fileMeta);
 	}
-	
+
 	public static int update(StorageFileMeta fileMeta) throws SQLException {
 		return fileMetaDao().update(fileMeta);
 	}
-	
+
 	public static int delete(StorageFileMeta fileMeta) throws SQLException {
 		return fileMetaDao().delete(fileMeta);
 	}

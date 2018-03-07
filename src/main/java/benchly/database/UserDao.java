@@ -43,10 +43,6 @@ public class UserDao {
 		return queryForFirstWhereEq("id", id);
 	}
 
-	public static User fetchByName(String name) throws SQLException {
-		return queryForFirstWhereEq("name", name);
-	}
-
 	public static User fetchByEmail(String email) throws SQLException {
 		return queryForFirstWhereEq("email", email);
 	}

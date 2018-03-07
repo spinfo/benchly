@@ -47,7 +47,7 @@
 			<version>2.3.1</version>
 		</dependency>
 
-		<!-- ormlite and jdbc to persist our models to sqlite -->
+		<!-- ormlite and (mysql-)jdbc for the database connection -->
 		<dependency>
 			<groupId>com.j256.ormlite</groupId>
 			<artifactId>ormlite-core</artifactId>
@@ -59,9 +59,9 @@
 			<version>5.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.xerial</groupId>
-			<artifactId>sqlite-jdbc</artifactId>
-			<version>3.21.0.1</version>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.9-rc</version>
 		</dependency>
 
 		<!-- Shiro for security related tasks -->

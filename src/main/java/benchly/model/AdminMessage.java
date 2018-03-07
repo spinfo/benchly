@@ -1,5 +1,6 @@
 package benchly.model;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -12,7 +13,7 @@ public class AdminMessage {
 	@DatabaseField(columnName = "serverContact", foreign = true, foreignAutoRefresh = false, canBeNull = true)
 	private ServerContact serverContact;
 
-	@DatabaseField(columnName = "content")
+	@DatabaseField(columnName = "content", dataType = DataType.LONG_STRING)
 	private String content;
 
 	public AdminMessage() {

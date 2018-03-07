@@ -31,13 +31,13 @@ public class OrmliteRealm extends AuthorizingRealm {
 
 	@Override
 	protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authToken) throws AuthenticationException {
-		final String name = authToken.getPrincipal().toString();
+		final String userEmail = authToken.getPrincipal().toString();
 		AuthenticationInfo result = null;
 
-		LOG.debug("Looking for user with name: " + name);
+		LOG.debug("Looking for user with name: " + userEmail);
 		User user = null;
 		try {
-			user = UserDao.fetchByName(name);
+			user = UserDao.fetchByEmail(userEmail);
 		} catch (SQLException e) {
 			LOG.error("Unexpected SQL exception during user authentication: " + e.getMessage());
 			e.printStackTrace();

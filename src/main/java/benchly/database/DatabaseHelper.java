@@ -55,7 +55,7 @@ class DatabaseHelper {
 
 	static DatabaseHelper getInstance() {
 		if (DatabaseHelper.instance == null) {
-			instance = new DatabaseHelper("jdbc:sqlite:/tmp/benchly.db");
+			instance = new DatabaseHelper("jdbc:mysql://benchly:secret@localhost:3306/benchly");
 		}
 		return instance;
 	}
@@ -132,16 +132,16 @@ class DatabaseHelper {
 
 	private void setupTables(final ConnectionSource connectionSource) throws SQLException {
 		// TODO: Remove next lines
-		TableUtils.dropTable(connectionSource, User.class, true);
-		TableUtils.dropTable(connectionSource, Workflow.class, true);
-		TableUtils.dropTable(connectionSource, Job.class, true);
-		TableUtils.dropTable(connectionSource, StorageConfig.class, true);
-		TableUtils.dropTable(connectionSource, StoragePermission.class, true);
-		TableUtils.dropTable(connectionSource, StorageFileMeta.class, true);
-		TableUtils.dropTable(connectionSource, ServerContact.class, true);
-		TableUtils.dropTable(connectionSource, StatusReport.class, true);
-		TableUtils.dropTable(connectionSource, AdminMessage.class, true);
 		TableUtils.dropTable(connectionSource, JobMessage.class, true);
+		TableUtils.dropTable(connectionSource, AdminMessage.class, true);
+		TableUtils.dropTable(connectionSource, StatusReport.class, true);
+		TableUtils.dropTable(connectionSource, ServerContact.class, true);
+		TableUtils.dropTable(connectionSource, StorageFileMeta.class, true);
+		TableUtils.dropTable(connectionSource, StoragePermission.class, true);
+		TableUtils.dropTable(connectionSource, StorageConfig.class, true);
+		TableUtils.dropTable(connectionSource, Job.class, true);
+		TableUtils.dropTable(connectionSource, Workflow.class, true);
+		TableUtils.dropTable(connectionSource, User.class, true);
 
 		TableUtils.createTableIfNotExists(connectionSource, Workflow.class);
 		TableUtils.createTableIfNotExists(connectionSource, User.class);

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -51,12 +52,12 @@ public class StorageConfig extends Model {
 	@DatabaseField(columnName = "owner", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
 	private User owner;
 
-	@DatabaseField(columnName = "endpoint")
+	@DatabaseField(columnName = "endpoint", dataType = DataType.LONG_STRING)
 	@Expose
 	private String endpoint;
 
 	// A string identifying the user with which to query the storage provider
-	@DatabaseField(columnName = "identity", canBeNull = false)
+	@DatabaseField(columnName = "identity", canBeNull = false, dataType = DataType.LONG_STRING)
 	@Expose
 	private String identity;
 
