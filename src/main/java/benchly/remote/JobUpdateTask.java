@@ -54,6 +54,7 @@ public class JobUpdateTask implements Runnable {
 			try {
 				JobMessage msg = ModelTransformer.transform(remoteMsg);
 				msg.setJob(job);
+				msg.setOrigin(job.getExecutingServer());
 				msg.setWorkflow(job.getWorkflow());
 				JobMessageDao.createIfNotExist(msg);
 			} catch (Exception e) {
