@@ -1,18 +1,27 @@
 package benchly.controller;
 
 import java.sql.SQLException;
+import java.util.concurrent.ScheduledExecutorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import benchly.BenchlyScheduler;
 import benchly.database.JobDao;
 import benchly.database.WorkflowDao;
 import benchly.error.ResourceNotFoundError;
 import benchly.model.Job;
 import benchly.model.User;
 import benchly.model.Workflow;
+import benchly.remote.JobCancelTask;
 import benchly.util.RequestUtil;
+import benchly.util.SessionUtil;
 import spark.Request;
 import spark.Route;
 
 public class JobController extends Controller {
+
+	private static final Logger LOG = LoggerFactory.getLogger(JobController.class);
 
 	public static Route show = (request, response) -> {
 		Job job = ensureSingleJobByIdFromRoute(request);
@@ -23,15 +32,17 @@ public class JobController extends Controller {
 	public static Route create = (request, response) -> {
 		Job job = JsonTransformer.readRequestBody(request.body(), Job.class);
 
-		User owner = ensureLoggedInUser(request, "only logged in users may create new jobs.");
+		User owner = ensureLoggedInUser(request, "Only register users may create new jobs.");
 		job.setOwner(owner);
 
-		long workflowId = RequestUtil.parseNumberedQueryParamOrDefault(request, "workflowId", -1L);
-		Workflow workflow = WorkflowDao.fetchById(workflowId);
+		// ensure that the workflow referenced by this job actually exists and the user
+		// may use it
+		Workflow workflow = WorkflowDao.fetchById(job.getWorkflow().getId());
 		if (workflow == null) {
-			throw new ResourceNotFoundError("Could not retrieve workflow for job creation, id: " + workflowId);
+			throw new ResourceNotFoundError("Could not retrieve workflow for job creation.");
 		}
-
+		ensureUserMayExecuteWorkflow(owner, workflow, request);
+		// set our databse workflow on the job, not the version parsed from request
 		job.setWorkflow(workflow);
 		job.setState(Job.State.PENDING);
 
@@ -39,6 +50,19 @@ public class JobController extends Controller {
 		ensureRowCountIsOne(rowsCreated, "create job");
 
 		return JsonTransformer.render(job, request);
+	};
+
+	public static Route cancel = (request, response) -> {
+		User user = ensureLoggedInUser(request, "Only registered users may cancel workflows.");
+		Job job = ensureSingleJobByIdFromRoute(request);
+		
+		ensureUserMayCancelJob(user, job, request);
+		
+		ScheduledExecutorService executor = BenchlyScheduler.get();
+		executor.submit(new JobCancelTask(job, executor));
+		
+		SessionUtil.addOkMessage(request, "The job is scheduled for cancellation.");
+		return emptyRoute.handle(request, response);
 	};
 
 	private static Job ensureSingleJobByIdFromRoute(Request request) throws ResourceNotFoundError, SQLException {
@@ -49,5 +73,17 @@ public class JobController extends Controller {
 			throw new ResourceNotFoundError("No job for id: '" + id + "'");
 		}
 		return job;
+	}
+
+	private static void ensureUserMayCancelJob(User user, Job job, Request request) {
+		if (!user.isAdmin() && !(user.getId() == job.getOwner().getId())) {
+			haltForbbiden(request, "Insufficient permissins to cancel this job.");
+		}
+	}
+
+	private static void ensureUserMayExecuteWorkflow(User user, Workflow workflow, Request request) {
+		if (!user.isAdmin() && !(workflow.getAuthor().getId() == user.getId())) {
+			haltForbbiden(request, "Insufficient workflow permissions to start a job for it.");
+		}
 	}
 }
