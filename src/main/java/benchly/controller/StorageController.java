@@ -128,38 +128,38 @@ public class StorageController extends Controller {
 
 		InputStream in = request.raw().getInputStream();
 		StorageFileMeta fileMeta = StorageAccess.getInstance().streamToNewFile(config, fileName, in);
-		
+
 		// TODO: Initialise a deferred refresh of the config's files instead?
 		fileMeta.setLastModified(Date.from(Instant.now()));
 		StorageDao.create(fileMeta);
 
 		return JsonTransformer.render(fileMeta, request);
 	};
-	
+
 	public static Route replaceFile = (request, response) -> {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
-		
+
 		InputStream in = request.raw().getInputStream();
 		StorageFileMeta newMeta = StorageAccess.getInstance().streamToNewFile(config, fileMeta.getName(), in);
-		
+
 		// TODO: Initialise a deferred refresh of the config's files instead?
 		fileMeta.setSize(newMeta.getSize());
 		fileMeta.setRetrievedAt(newMeta.getRetrievedAt());
 		fileMeta.setLastModified(Date.from(Instant.now()));
 		StorageDao.update(fileMeta);
-		
+
 		return JsonTransformer.render(fileMeta, request);
 	};
-	
+
 	public static Route destroyFile = (request, response) -> {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
-		
+
 		StorageAccess.getInstance().deleteFile(config, fileMeta);
-		// TODO: Initialise a deferred refresh of the config's files instead?
-		StorageDao.delete(config);
-		
+
+		// TODO: Initialise a deferred refresh of the config's files
+
 		return JsonTransformer.render(fileMeta, request);
 	};
 
@@ -184,8 +184,9 @@ public class StorageController extends Controller {
 		}
 		return fileMeta;
 	}
-	
-	private static StorageConfig ensureStorageConfigWithFileAccess(Request request) throws SQLException, ResourceNotFoundError {
+
+	private static StorageConfig ensureStorageConfigWithFileAccess(Request request)
+			throws SQLException, ResourceNotFoundError {
 		User user = ensureLoggedInUser(request, "Only registered users may access files.");
 		StorageConfig config = ensureStorageConfigFromRequest(request);
 		ensureUserMayAccessConfig(user, config, request);

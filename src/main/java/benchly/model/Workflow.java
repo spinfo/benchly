@@ -16,7 +16,7 @@ public class Workflow extends Model {
 
 	// The primary id of this workflow in the database
 	@DatabaseField(columnName = "id", generatedId = true)
-	@Expose(deserialize = false)
+	@Expose
 	private long id;
 
 	// All versions of a workflow refer to the same versionId, a UUID string

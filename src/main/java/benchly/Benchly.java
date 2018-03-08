@@ -9,7 +9,6 @@ import static spark.Spark.post;
 import static spark.Spark.put;
 
 import java.sql.SQLException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +48,7 @@ public class Benchly {
 	public static void main(String[] args) {
 
 		// initialize the scheduler with the periodic tasks
-		taskScheduler = Executors.newScheduledThreadPool(50);
+		taskScheduler = BenchlyScheduler.get();
 
 		// schedule a warcher to regularly check up on the servers connected to us
 		taskScheduler.scheduleAtFixedRate(new ServerContactWatcher(taskScheduler, 120), 5, 10, TimeUnit.SECONDS);
@@ -57,7 +56,7 @@ public class Benchly {
 		// schedule watchers to periodically check up on runninh jobs or jobs that
 		// should be started
 		taskScheduler.scheduleAtFixedRate(new JobScheduler(taskScheduler, 500), 10, 10, TimeUnit.SECONDS);
-		taskScheduler.scheduleAtFixedRate(new JobWatcher(taskScheduler, 60), 15, 10, TimeUnit.SECONDS);
+		taskScheduler.scheduleAtFixedRate(new JobWatcher(taskScheduler, 30), 15, 10, TimeUnit.SECONDS);
 
 		// Initialise the Shiro security manager
 		final SecurityManager securityManager = (new IniSecurityManagerFactory("classpath:shiro.ini")).createInstance();
@@ -94,6 +93,7 @@ public class Benchly {
 			path("/jobs", () -> {
 				post("", JobController.create);
 				get("/:id", JobController.show);
+				delete("/:id", JobController.cancel);
 			});
 
 			path("/storage", () -> {

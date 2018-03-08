@@ -23,7 +23,7 @@ public class Job extends Model {
 	private State state;
 
 	@DatabaseField(columnName = "owner", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
-	@Expose
+	@Expose(deserialize = false)
 	private User owner;
 
 	@DatabaseField(columnName = "workflow", canBeNull = false, foreign = true, foreignAutoRefresh = true, index = true)
@@ -47,7 +47,7 @@ public class Job extends Model {
 	// how often a try was made to submit the job to multiple servers and all
 	// attempts failed
 	@DatabaseField(columnName = "failedSubmittalAttempts", canBeNull = false)
-	@Expose
+	@Expose(deserialize = false)
 	private int failedSubmittalAttempts = 0;
 
 	// when the job was successfully submitted to a server for processing
