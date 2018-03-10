@@ -11,7 +11,6 @@ import benchly.error.ServerAccessError;
 import benchly.model.AdminMessage;
 import benchly.model.ServerContact;
 import benchly.model.StatusReport;
-import benchly.model.ServerContact.Reachability;
 
 /**
  * A task to query a remote server for it's status and save the report to the
@@ -38,14 +37,14 @@ public class ServerStatusReportTask implements Runnable {
 			String message = "Unable to contact Server for report on: %s, got: %s";
 			reportServerUnreachable(contact, String.format(message, contact.getEndpoint(), e.getMessage()));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+			LOG.error("Unexpected error on querying the database for a server contact to check: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
 	private void reportServerUnreachable(ServerContact contact, String message) {
 		try {
-			contact.setReachbility(Reachability.REPORTED_REACHABLE);
+			contact.setUnreachableNow();
 			ServerContactDao.update(contact);
 		} catch (SQLException e) {
 			LOG.error("Unable to set server as unreachable: " + e.getMessage());

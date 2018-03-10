@@ -31,7 +31,7 @@ class ServerContactWatcher implements Runnable {
 
 		ServerContact contact = null;
 		try {
-			contact = ServerContactDao.pickOneReachableWhereLastCheckIsLongerAgoThan(secondsTillCheck);
+			contact = ServerContactDao.fetchOneWhereLastCheckIsLongerAgoThan(secondsTillCheck);
 
 			if (contact == null) {
 				return;

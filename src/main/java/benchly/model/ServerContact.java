@@ -1,6 +1,7 @@
 package benchly.model;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
 import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DataType;
@@ -13,19 +14,19 @@ public class ServerContact {
 	// an enum and not a boolean because we might later add values like "do not
 	// contact"
 	public static enum Reachability {
-		DEFAULT, REPORTED_REACHABLE
+		DEFAULT, REPORTED_UNREACHABLE
 	};
 
 	@DatabaseField(columnName = "id", generatedId = true)
 	@Expose(deserialize = false)
 	private long id;
 
-	@DatabaseField(columnName ="reachability", canBeNull = false, index = true)
+	@DatabaseField(columnName = "reachability", canBeNull = false, index = true)
 	@Expose(deserialize = false)
 	private Reachability reachbility;
 
 	// a unique name by which the server identifies itself
-	@DatabaseField(columnName = "name", canBeNull = false, unique = true, width=1024)
+	@DatabaseField(columnName = "name", canBeNull = false, unique = true, width = 1024)
 	@Expose
 	private String name;
 
@@ -33,7 +34,7 @@ public class ServerContact {
 	@DatabaseField(columnName = "endpoint", canBeNull = false, dataType = DataType.LONG_STRING)
 	@Expose
 	private String endpoint;
-	
+
 	@DatabaseField(columnName = "approximateUsableMemory", canBeNull = true, index = true)
 	@Expose(deserialize = false)
 	private long approximateUsableMemory;
@@ -41,7 +42,7 @@ public class ServerContact {
 	@DatabaseField(columnName = "approximateRunningJobs", canBeNull = true, index = true)
 	@Expose(deserialize = false)
 	private int approximateRunningJobs;
-	
+
 	@DatabaseField(columnName = "lastChecked", canBeNull = true, index = true)
 	@Expose(deserialize = false)
 	private Timestamp lastChecked;
@@ -80,8 +81,9 @@ public class ServerContact {
 		return reachbility;
 	}
 
-	public void setReachbility(Reachability reachbility) {
-		this.reachbility = reachbility;
+	public void setUnreachableNow() {
+		this.reachbility = Reachability.REPORTED_UNREACHABLE;
+		this.lastChecked = Timestamp.from(Instant.now());
 	}
 
 	public long getApproximateUsableMemory() {

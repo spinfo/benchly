@@ -23,12 +23,11 @@ public class ServerContactDao {
 		return dao().queryBuilder().where().eq("name", name).queryForFirst();
 	}
 
-	public static ServerContact pickOneReachableWhereLastCheckIsLongerAgoThan(long seconds) throws SQLException {
+	public static ServerContact fetchOneWhereLastCheckIsLongerAgoThan(long seconds) throws SQLException {
 		Timestamp threshold = Timestamp.from(Instant.now().minusSeconds(seconds));
 
 		QueryBuilder<ServerContact, Long> builder = dao().queryBuilder();
-		builder.where().isNull("lastChecked").or().le("lastChecked", threshold).and().eq("reachability",
-				Reachability.DEFAULT);
+		builder.where().isNull("lastChecked").or().le("lastChecked", threshold);
 		return builder.queryForFirst();
 	}
 
@@ -57,6 +56,7 @@ public class ServerContactDao {
 		updateBuider.updateColumnValue("approximateUsableMemory", report.getLongTermUsableMemory());
 		updateBuider.updateColumnValue("approximateRunningJobs", report.getRunningJobs());
 		updateBuider.updateColumnValue("lastChecked", Timestamp.from(Instant.now()));
+		updateBuider.updateColumnValue("reachability", Reachability.DEFAULT);
 		updateBuider.where().eq("id", contact.getId());
 
 		return TransactionManager.callInTransaction(dao().getConnectionSource(), new Callable<Integer>() {
@@ -80,8 +80,6 @@ public class ServerContactDao {
 	/**
 	 * Fetches list of server contacts, that presumably meet the required memory
 	 * demand. Tries to order suitable candidates first.
-	 * 
-	 * TODO: Return an Iterator?
 	 * 
 	 * @return An iterator over ServerContact objects
 	 * @throws SQLException
