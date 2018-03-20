@@ -1,6 +1,7 @@
 package benchly.controller;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 import benchly.BenchlyScheduler;
@@ -13,6 +14,7 @@ import benchly.model.Workflow;
 import benchly.remote.JobCancelTask;
 import benchly.util.RequestUtil;
 import benchly.util.SessionUtil;
+import benchly.util.RequestUtil.PaginationParams;
 import spark.Request;
 import spark.Route;
 
@@ -22,6 +24,24 @@ public class JobController extends Controller {
 		Job job = ensureSingleJobByIdFromRoute(request);
 
 		return JsonTransformer.render(job, request);
+	};
+
+	public static Route index = (request, response) -> {
+		User user = ensureLoggedInUser(request, "Only registered users may view jobs.");
+
+		PaginationParams pagination = RequestUtil.parsePaginationParams(request);
+
+		List<Job> jobs;
+		long max;
+		if (user.isAdmin()) {
+			jobs = JobDao.fetchAll(pagination);
+			max = JobDao.count();
+		} else {
+			jobs = JobDao.fetchAllBelongigTo(user, pagination);
+			max = JobDao.countBelongingTo(user);
+		}
+
+		return JsonTransformer.renderPaginatedResult(jobs, request, pagination.limit, pagination.offset, max);
 	};
 
 	public static Route create = (request, response) -> {
@@ -48,14 +68,14 @@ public class JobController extends Controller {
 	};
 
 	public static Route cancel = (request, response) -> {
-		User user = ensureLoggedInUser(request, "Only registered users may cancel workflows.");
+		User user = ensureLoggedInUser(request, "Only registered users may cancel jobs.");
 		Job job = ensureSingleJobByIdFromRoute(request);
-		
+
 		ensureUserMayCancelJob(user, job, request);
-		
+
 		ScheduledExecutorService executor = BenchlyScheduler.get();
 		executor.submit(new JobCancelTask(job, executor));
-		
+
 		SessionUtil.addOkMessage(request, "The job is scheduled to be canceled.");
 		return emptyRoute.handle(request, response);
 	};

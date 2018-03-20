@@ -91,6 +91,7 @@ public class Benchly {
 			});
 
 			path("/jobs", () -> {
+				get("", JobController.index);
 				post("", JobController.create);
 				get("/:id", JobController.show);
 				delete("/:id", JobController.cancel);
