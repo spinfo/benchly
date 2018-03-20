@@ -3,9 +3,6 @@ package benchly.controller;
 import java.sql.SQLException;
 import java.util.concurrent.ScheduledExecutorService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import benchly.BenchlyScheduler;
 import benchly.database.JobDao;
 import benchly.database.WorkflowDao;
@@ -20,8 +17,6 @@ import spark.Request;
 import spark.Route;
 
 public class JobController extends Controller {
-
-	private static final Logger LOG = LoggerFactory.getLogger(JobController.class);
 
 	public static Route show = (request, response) -> {
 		Job job = ensureSingleJobByIdFromRoute(request);
@@ -61,7 +56,7 @@ public class JobController extends Controller {
 		ScheduledExecutorService executor = BenchlyScheduler.get();
 		executor.submit(new JobCancelTask(job, executor));
 		
-		SessionUtil.addOkMessage(request, "The job is scheduled for cancellation.");
+		SessionUtil.addOkMessage(request, "The job is scheduled to be canceled.");
 		return emptyRoute.handle(request, response);
 	};
 

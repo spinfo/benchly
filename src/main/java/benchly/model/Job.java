@@ -4,7 +4,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 import com.google.gson.annotations.Expose;
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "job")
@@ -33,6 +35,10 @@ public class Job extends Model {
 	@DatabaseField(columnName = "executingServer", canBeNull = true, foreign = true, foreignAutoRefresh = true, index = true)
 	@Expose(deserialize = false)
 	private ServerContact executingServer;
+	
+	@ForeignCollectionField(foreignFieldName = "job", eager = true, orderColumnName="recordedAt")
+	@Expose(deserialize = true)
+	private ForeignCollection<JobMessage> messages;
 
 	// the time estimated by the user in seconds
 	@DatabaseField(columnName = "estimatedTime", index = true)

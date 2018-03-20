@@ -17,11 +17,9 @@ public class JobMessage {
 	private String uuid;
 
 	@DatabaseField(columnName = "job", foreign = true, foreignAutoRefresh = false, index = true, canBeNull = false)
-	@Expose(deserialize = false)
 	private Job job;
 
 	@DatabaseField(columnName = "workflow", foreign = true, foreignAutoRefresh = false, index = true, canBeNull = false)
-	@Expose(deserialize = false)
 	private Workflow workflow;
 
 	@DatabaseField(columnName = "origin", foreign = true, foreignAutoRefresh = false, index = true, canBeNull = true)
@@ -31,8 +29,9 @@ public class JobMessage {
 	@Expose(deserialize = false)
 	private String content;
 
-	// the remote or local time of recording
-	@DatabaseField(columnName = "createdAt", canBeNull = false)
+	// the time of recording (the remote timestamp if the message was received remotely)
+	@DatabaseField(columnName = "recordedAt", canBeNull = false)
+	@Expose(deserialize = false)
 	private Timestamp recordedAt;
 
 	public JobMessage() {
@@ -58,10 +57,6 @@ public class JobMessage {
 
 	public void setUuid(String uuid) {
 		this.uuid = uuid;
-	}
-
-	public Job getJob() {
-		return job;
 	}
 
 	public void setJob(Job job) {
