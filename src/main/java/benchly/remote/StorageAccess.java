@@ -27,6 +27,7 @@ import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.blobstore.options.PutOptions;
+import org.jclouds.http.HttpResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,8 @@ public class StorageAccess {
 		return instance;
 	}
 
-	public boolean streamFileToResponse(StorageConfig config, StorageFileMeta fileMeta, HttpServletResponse response) {
+	public boolean streamFileToResponse(StorageConfig config, StorageFileMeta fileMeta, HttpServletResponse response)
+			throws StorageAccessError {
 		BlobStoreContext context = getOrCreateBlobStoreContext(config);
 
 		BlobStore blobStore = context.getBlobStore();
@@ -67,14 +69,12 @@ public class StorageAccess {
 			int contentSize = Math.toIntExact(blobMeta.getSize());
 			response.setContentLength(contentSize);
 		} catch (ArithmeticException e) {
-			// do nothing, just leave the response content length empty,
+			// do nothing, just leave the response content length empty.
 		}
 
 		// Note: Blob.getBlob() does connect to the storage provider, but it will not
 		// download all of the data.
-		long beginBlob = System.currentTimeMillis();
 		Blob blob = blobStore.getBlob(config.getContainer(), fileMeta.getName());
-		LOG.debug("getBlob() took: " + (System.currentTimeMillis() - beginBlob) + " ms");
 
 		long beginStream = System.currentTimeMillis();
 		try (InputStream in = blob.getPayload().openStream(); OutputStream out = response.getOutputStream();) {
@@ -86,8 +86,9 @@ public class StorageAccess {
 			}
 			LOG.debug("streaming took: " + (System.currentTimeMillis() - beginStream) + " ms");
 		} catch (IOException e) {
-			LOG.error("IOException: " + e.getMessage());
-			e.printStackTrace();
+			throw new StorageAccessError("An IOError occured during storage access.", e);
+		} catch (HttpResponseException e) {
+			throw new StorageAccessError("Unexpected HTTP Response: " + e.getMessage(), e);
 		}
 
 		return true;
@@ -99,9 +100,6 @@ public class StorageAccess {
 
 		// setup a blob to use for the upload
 		Blob blob = blobStore.blobBuilder(fileName).build();
-
-		// TODO: find out how we can catch exceptions like
-		// "org.jclouds.aws.AWSResponseException"
 
 		int chunkSize = determineUploadChunkSize(blobStore, 5000000);
 		try {
@@ -146,6 +144,8 @@ public class StorageAccess {
 			return new StorageFileMeta(config, fileName, totalSize);
 		} catch (IOException e) {
 			throw new StorageAccessError("An IOError occured during storage access.", e);
+		} catch (HttpResponseException e) {
+			throw new StorageAccessError("Unexpected HTTP Response: " + e.getMessage(), e);
 		}
 	}
 
