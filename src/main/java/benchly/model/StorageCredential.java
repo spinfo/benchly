@@ -8,6 +8,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.shiro.codec.Base64;
+import org.apache.shiro.codec.Hex;
 import org.apache.shiro.crypto.AesCipherService;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.slf4j.Logger;
@@ -54,8 +55,8 @@ public class StorageCredential {
 		// encrypt the credential using the key
 		AesCipherService aes = new AesCipherService();
 		aes.setKeySize(keySize);
-		this.encryptedCredential = aes.encrypt(plainCredential.getBytes(), key.getEncoded()).toBase64();
-		this.salt = new String(Base64.encode(saltBytes));
+		this.encryptedCredential = aes.encrypt(plainCredential.getBytes(), key.getEncoded()).toHex();
+		this.salt = Hex.encodeToString(saltBytes);
 	}
 
 	public String getEnryptedCredential() {
