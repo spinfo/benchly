@@ -78,8 +78,7 @@ class ModelTransformer {
 			fetchError = true;
 		}
 		if (contact == null || fetchError) {
-			throw new ServerAccessError(
-					"Unable to retrieve sever contact (for status report) with name: " + remote.name);
+			LOG.warn("No server contact in the db with a name returned by a status report response");
 		}
 
 		// initialize our version of the status report

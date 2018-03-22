@@ -30,9 +30,12 @@ public class ServerStatusReportTask implements Runnable {
 	public void run() {
 		try {
 			StatusReport report = ServerAccess.fetchStatus(contact);
-			ServerContactDao.createReport(contact, report);
-			LOG.debug("Logged status for server: " + contact.getEndpoint() + ", reports running jobs: "
-					+ report.getRunningJobs());
+
+			if (contact.getId() != -1) {
+				ServerContactDao.createReport(contact, report);
+				LOG.debug("Logged status for server: " + contact.getEndpoint() + ", reports running jobs: "
+						+ report.getRunningJobs());
+			}
 		} catch (ServerAccessError e) {
 			String message = "Unable to contact Server for report on: %s, got: %s";
 			reportServerUnreachable(contact, String.format(message, contact.getEndpoint(), e.getMessage()));

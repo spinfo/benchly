@@ -27,7 +27,7 @@ public class ServerContact {
 
 	// a unique name by which the server identifies itself
 	@DatabaseField(columnName = "name", canBeNull = false, unique = true, width = 1024)
-	@Expose
+	@Expose(deserialize = false)
 	private String name;
 
 	// the url by which the server is currently contacted

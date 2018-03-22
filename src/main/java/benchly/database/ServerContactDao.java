@@ -15,9 +15,30 @@ import com.j256.ormlite.stmt.UpdateBuilder;
 
 import benchly.model.ServerContact;
 import benchly.model.StatusReport;
+import benchly.util.RequestUtil.PaginationParams;
 import benchly.model.ServerContact.Reachability;
 
 public class ServerContactDao {
+
+	public static long count() throws SQLException {
+		return dao().countOf();
+	}
+	
+	public static long countReports(ServerContact contact) throws SQLException {
+		return reportDao().queryBuilder().where().eq("serverContact", contact.getId()).countOf();
+	}
+
+	public static List<ServerContact> fetchAll(PaginationParams pagination) throws SQLException {
+		return dao().queryBuilder().limit(pagination.limit).offset(pagination.offset).query();
+	}
+	
+	public static List<StatusReport> fetchReports(PaginationParams pagination, ServerContact contact) throws SQLException {
+		return reportDao().queryBuilder().limit(pagination.limit).offset(pagination.offset).where().eq("serverContact", contact.getId()).query();
+	}
+
+	public static ServerContact fetchById(long id) throws SQLException {
+		return dao().queryBuilder().where().eq("id", id).queryForFirst();
+	}
 
 	public static ServerContact fetchByName(String name) throws SQLException {
 		return dao().queryBuilder().where().eq("name", name).queryForFirst();
@@ -37,10 +58,6 @@ public class ServerContactDao {
 
 	public static int update(ServerContact contact) throws SQLException {
 		return dao().update(contact);
-	}
-
-	public static int delete(ServerContact contact) throws SQLException {
-		return dao().delete(contact);
 	}
 
 	public static List<ServerContact> fetchReachable() throws SQLException {
@@ -87,7 +104,8 @@ public class ServerContactDao {
 	public static CloseableIterator<ServerContact> fetchJobSubmittalCandidates(long memoryDemand) throws SQLException {
 		QueryBuilder<ServerContact, Long> builder = dao().queryBuilder();
 
-		// sort those with few jobs and best memory first, return only those that meet the memory demand
+		// sort those with few jobs and best memory first, return only those that meet
+		// the memory demand
 		builder.orderBy("approximateRunningJobs", true);
 		builder.orderBy("approximateUsableMemory", false);
 		builder.where().eq("reachability", Reachability.DEFAULT).and().ge("approximateUsableMemory", memoryDemand);

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import benchly.controller.ErrorHandlers;
 import benchly.controller.JobController;
+import benchly.controller.ServerContactController;
 import benchly.controller.SessionController;
 import benchly.controller.StorageController;
 import benchly.controller.UserController;
@@ -111,6 +112,14 @@ public class Benchly {
 					post("/:fileId", StorageController.replaceFile);
 					delete("/:fileId", StorageController.destroyFile);
 				});
+			});
+			
+			path("/server_contacts", () -> {
+				post("", ServerContactController.create);
+				get("", ServerContactController.index);
+				get("/:id", ServerContactController.show);
+				put("/:id", ServerContactController.update);
+				get("/:id/reports", ServerContactController.indexReports);
 			});
 		});
 
