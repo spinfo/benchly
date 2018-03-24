@@ -23,7 +23,7 @@ public class ServerContact {
 
 	@DatabaseField(columnName = "reachability", canBeNull = false, index = true)
 	@Expose(deserialize = false)
-	private Reachability reachbility;
+	private Reachability reachability;
 
 	// a unique name by which the server identifies itself
 	@DatabaseField(columnName = "name", canBeNull = false, unique = true, width = 1024)
@@ -48,7 +48,7 @@ public class ServerContact {
 	private Timestamp lastChecked;
 
 	protected ServerContact() {
-		this.reachbility = Reachability.DEFAULT;
+		this.reachability = Reachability.DEFAULT;
 	}
 
 	public ServerContact(String name, String endpoint) {
@@ -77,12 +77,12 @@ public class ServerContact {
 		this.endpoint = endpoint;
 	}
 
-	public Reachability getReachbility() {
-		return reachbility;
+	public Reachability getReachability() {
+		return reachability;
 	}
 
 	public void setUnreachableNow() {
-		this.reachbility = Reachability.REPORTED_UNREACHABLE;
+		this.reachability = Reachability.REPORTED_UNREACHABLE;
 		this.lastChecked = Timestamp.from(Instant.now());
 	}
 
