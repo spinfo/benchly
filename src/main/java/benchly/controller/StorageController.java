@@ -120,9 +120,11 @@ public class StorageController extends Controller {
 	public static Route downloadFile = (request, response) -> {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
+		
+	    response.raw().setHeader("Content-Disposition","attachment; filename=" + fileMeta.getName());
 
 		StorageAccess.getInstance().streamFileToResponse(config, fileMeta, response.raw());
-		return 200;
+		return response.raw();
 	};
 
 	public static Route uploadFile = (request, response) -> {
