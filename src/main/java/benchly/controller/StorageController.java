@@ -1,11 +1,13 @@
 package benchly.controller;
 
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.Part;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import benchly.BenchlyScheduler;
 import benchly.database.StorageDao;
 import benchly.error.InvalidModelException;
+import benchly.error.InvalidRequestException;
 import benchly.error.ResourceNotFoundError;
 import benchly.error.StorageAccessError;
 import benchly.model.StorageConfig;
@@ -37,32 +40,24 @@ public class StorageController extends Controller {
 		return JsonTransformer.render(configs, request);
 	};
 
-	public static Route show = (request, response) -> {
-		User user = ensureLoggedInUser(request, "Only registered users may view storage configurations.");
-		StorageConfig config = ensureStorageConfigFromRequest(request);
-		ensureUserMayAccessConfig(user, config, request);
+	public static Route show=(request,response)->{User user=ensureLoggedInUser(request,"Only registered users may view storage configurations.");StorageConfig config=ensureStorageConfigFromRequest(request);ensureUserMayAccessConfig(user,config,request);
 
-		// if the refresh param is set to "true", fetch file information for the storage
-		// configuration
-		if (Boolean.parseBoolean(request.queryParams("refresh"))) {
-			LOG.debug("Explicit request for file meta registered for config: " + config.getId());
+	// if the refresh param is set to "true", fetch file information for the storage
+	// configuration
+	if(Boolean.parseBoolean(request.queryParams("refresh"))){LOG.debug("Explicit request for file meta registered for config: "+config.getId());
 
-			try {
-				BenchlyScheduler.get().submit(new StorageConfigRefreshTask(config)).get();
-			} catch (ExecutionException e) {
-				throw new StorageAccessError("Unable to refresh storage file meta.", e.getCause());
-			}
+	try{BenchlyScheduler.get().submit(new StorageConfigRefreshTask(config)).get();}catch(
+	ExecutionException e)
+	{
+		throw new StorageAccessError("Unable to refresh storage file meta.", e.getCause());
+	}
 
-			config = StorageDao.fetchConfig(config.getId());
-		}
-		// only if the parameter credential is set, generate an encrypted credential to
-		// show
-		if (Boolean.parseBoolean(request.queryParams("credential"))) {
-			config.generateNewEncryptedCredential();
-		}
+	config=StorageDao.fetchConfig(config.getId());}
+	// only if the parameter credential is set, generate an encrypted credential to
+	// show
+	if(Boolean.parseBoolean(request.queryParams("credential"))){config.generateNewEncryptedCredential();}
 
-		return JsonTransformer.render(config, request);
-	};
+	return JsonTransformer.render(config,request);};
 
 	public static Route create = (request, response) -> {
 		User user = ensureLoggedInUser(request, "Only registered users may create storage configurations.");
@@ -120,8 +115,8 @@ public class StorageController extends Controller {
 	public static Route downloadFile = (request, response) -> {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
-		
-	    response.raw().setHeader("Content-Disposition","attachment; filename=" + fileMeta.getName());
+
+		response.raw().setHeader("Content-Disposition", "attachment; filename=" + fileMeta.getName());
 
 		StorageAccess.getInstance().streamFileToResponse(config, fileMeta, response.raw());
 		return response.raw();
@@ -130,34 +125,29 @@ public class StorageController extends Controller {
 	public static Route uploadFile = (request, response) -> {
 		StorageConfig config = ensureStorageConfigWithFileAccess(request);
 
-		// the filename should be given in the query params
-		String fileName = request.queryParams("fileName");
-		if (StringUtils.isBlank(fileName)) {
-			fileName = "new-file";
+		setupMultipartConfig(request);
+		
+		Part filePart = null;
+		StorageFileMeta fileMeta = null;
+		try {
+			filePart = request.raw().getPart("upload");
+			if (filePart == null) {
+				throw new InvalidRequestException("No file part specified for expected mulitpart upload.");
+			}
+			String newFileName = filePart.getSubmittedFileName();
+			if (StringUtils.isBlank(newFileName)) {
+				newFileName = "unknown-file-name";
+			}
+			fileMeta = StorageAccess.getInstance().streamToNewFile(config, newFileName,
+					filePart.getInputStream());
+		} finally {
+			if (filePart != null) {
+				filePart.delete();
+			}
 		}
 
-		InputStream in = request.raw().getInputStream();
-		StorageFileMeta fileMeta = StorageAccess.getInstance().streamToNewFile(config, fileName, in);
-
-		// TODO: Initialise a deferred refresh of the config's files instead?
 		fileMeta.setLastModified(Date.from(Instant.now()));
 		StorageDao.create(fileMeta);
-
-		return JsonTransformer.render(fileMeta, request);
-	};
-
-	public static Route replaceFile = (request, response) -> {
-		StorageConfig config = ensureStorageConfigWithFileAccess(request);
-		StorageFileMeta fileMeta = ensureFileMetaWithConfigFromRequest(config, request);
-
-		InputStream in = request.raw().getInputStream();
-		StorageFileMeta newMeta = StorageAccess.getInstance().streamToNewFile(config, fileMeta.getName(), in);
-
-		// TODO: Initialise a deferred refresh of the config's files instead?
-		fileMeta.setSize(newMeta.getSize());
-		fileMeta.setRetrievedAt(newMeta.getRetrievedAt());
-		fileMeta.setLastModified(Date.from(Instant.now()));
-		StorageDao.update(fileMeta);
 
 		return JsonTransformer.render(fileMeta, request);
 	};
@@ -218,6 +208,18 @@ public class StorageController extends Controller {
 
 	private static boolean userOwnsConfig(User user, StorageConfig config) {
 		return user.getId() == config.getOwner().getId();
+	}
+
+	private static void setupMultipartConfig(Request request) {
+		// TODO: Change this to another directory under our control only
+		String location = "/tmp/";
+		long maxFileSize = 1000000000;
+		long maxRequestSize = 1000000000;
+		int fileSizeThreshold = 1024;
+
+		MultipartConfigElement multipartConfigElement = new MultipartConfigElement(location, maxFileSize, maxRequestSize,
+				fileSizeThreshold);
+		request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 	}
 
 }

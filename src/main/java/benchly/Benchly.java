@@ -112,7 +112,6 @@ public class Benchly {
 					post("", StorageController.uploadFile);
 					get("/:fileId", StorageController.showFileMeta);
 					get("/:fileId/download", StorageController.downloadFile);
-					post("/:fileId", StorageController.replaceFile);
 					delete("/:fileId", StorageController.destroyFile);
 				});
 			});
