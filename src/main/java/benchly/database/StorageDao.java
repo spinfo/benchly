@@ -1,6 +1,8 @@
 package benchly.database;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +16,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
 
 import benchly.model.StorageConfig;
 import benchly.model.StorageFileMeta;
@@ -37,6 +40,14 @@ public class StorageDao {
 	public static int update(StorageConfig config) throws SQLException {
 		config.setUpdatedAtNow();
 		return dao().update(config);
+	}
+
+	public static StorageConfig fetchOneWhereLastRefreshIsLongerAgoThan(long seconds) throws SQLException {
+		Timestamp threshold = Timestamp.from(Instant.now().minusSeconds(seconds));
+
+		QueryBuilder<StorageConfig, Long> builder = dao().queryBuilder();
+		builder.where().isNull("refreshedAt").or().le("refreshedAt", threshold);
+		return builder.queryForFirst();
 	}
 
 	public static List<StorageFileMeta> fetchFilesMeta(StorageConfig config) throws SQLException {
@@ -65,7 +76,7 @@ public class StorageDao {
 	public static int delete(List<StorageConfig> configs) throws SQLException {
 		// collect the ids to delete by
 		Set<Long> ids = configs.stream().map(c -> c.getId()).collect(Collectors.toSet());
-		
+
 		int result = TransactionManager.callInTransaction(dao().getConnectionSource(), new Callable<Integer>() {
 
 			@Override
@@ -132,7 +143,15 @@ public class StorageDao {
 			LOG.warn("Config ids do not match on bulk update of file meta information. Ignoring invalid ids");
 		}
 		// actually update
-		return bulkUpdateForStorageConfig(fileMetaDao(), config, toPersist);
+		int result = bulkUpdateForStorageConfig(fileMetaDao(), config, toPersist);
+	
+		// set refresh date on the config
+		UpdateBuilder<StorageConfig, Long> builder = dao().updateBuilder();
+		builder.where().idEq(config.getId());
+		builder.updateColumnValue("refreshedAt", Timestamp.from(Instant.now()));
+		builder.update();
+		
+		return result;
 	}
 
 	// bulk updates the dao's table by deleting all objects referring to the storage

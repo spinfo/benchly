@@ -175,9 +175,7 @@ public class StorageAccess {
 		PageSet<? extends StorageMetadata> pages = store.list(config.getContainer());
 		Set<StorageFileMeta> ourMetadata = new HashSet<>();
 		while (true) {
-			LOG.info(pages.getClass().getName());
 			for (StorageMetadata page : pages) {
-				LOG.info(page.toString());
 				ourMetadata.add(StorageFileMeta.from(config, page));
 			}
 

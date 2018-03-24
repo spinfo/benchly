@@ -5,18 +5,21 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import benchly.BenchlyScheduler;
 import benchly.database.StorageDao;
 import benchly.error.InvalidModelException;
 import benchly.error.ResourceNotFoundError;
+import benchly.error.StorageAccessError;
 import benchly.model.StorageConfig;
 import benchly.model.StorageFileMeta;
 import benchly.model.User;
 import benchly.remote.StorageAccess;
+import benchly.remote.StorageConfigRefreshTask;
 import benchly.util.RequestUtil;
 import spark.Request;
 import spark.Route;
@@ -42,9 +45,14 @@ public class StorageController extends Controller {
 		// if the refresh param is set to "true", fetch file information for the storage
 		// configuration
 		if (Boolean.parseBoolean(request.queryParams("refresh"))) {
-			LOG.info("Explicit request for file meta registered for config: " + config.getId());
-			Set<StorageFileMeta> fileMeta = StorageAccess.getInstance().getFilesMeta(config);
-			StorageDao.updateStorageFileMeta(config, fileMeta);
+			LOG.debug("Explicit request for file meta registered for config: " + config.getId());
+
+			try {
+				BenchlyScheduler.get().submit(new StorageConfigRefreshTask(config)).get();
+			} catch (ExecutionException e) {
+				throw new StorageAccessError("Unable to refresh storage file meta.", e.getCause());
+			}
+
 			config = StorageDao.fetchConfig(config.getId());
 		}
 		// only if the parameter credential is set, generate an encrypted credential to

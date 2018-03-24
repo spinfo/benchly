@@ -48,13 +48,19 @@ public class Benchly {
 
 	public static void main(String[] args) {
 
-		// initialize the scheduler with the periodic tasks
+		// TODO: Remove
+		TestEntrySetup.setup();
+		
+		// initialise the scheduler with the periodic tasks
 		taskScheduler = BenchlyScheduler.get();
 
-		// schedule a warcher to regularly check up on the servers connected to us
+		// schedule a watcher to regularly check up on the servers connected to us
 		taskScheduler.scheduleAtFixedRate(new ServerContactWatcher(taskScheduler, 120), 5, 10, TimeUnit.SECONDS);
 
-		// schedule watchers to periodically check up on runninh jobs or jobs that
+		// schedule a watcher to periodically check up on storage and refresh it
+		taskScheduler.scheduleAtFixedRate(new StorageWatcher(taskScheduler, (30 * 60)), 3, 5, TimeUnit.SECONDS);
+
+		// schedule watchers to periodically check up on running jobs or jobs that
 		// should be started
 		taskScheduler.scheduleAtFixedRate(new JobScheduler(taskScheduler, 500), 10, 10, TimeUnit.SECONDS);
 		taskScheduler.scheduleAtFixedRate(new JobWatcher(taskScheduler, 30), 15, 10, TimeUnit.SECONDS);
@@ -62,9 +68,6 @@ public class Benchly {
 		// Initialise the Shiro security manager
 		final SecurityManager securityManager = (new IniSecurityManagerFactory("classpath:shiro.ini")).createInstance();
 		SecurityUtils.setSecurityManager(securityManager);
-
-		// TODO: Remove
-		TestEntrySetup.setup();
 
 		path("/api/v1", () -> {
 
@@ -113,7 +116,7 @@ public class Benchly {
 					delete("/:fileId", StorageController.destroyFile);
 				});
 			});
-			
+
 			path("/server_contacts", () -> {
 				post("", ServerContactController.create);
 				get("", ServerContactController.index);

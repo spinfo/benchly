@@ -166,6 +166,10 @@ public class StorageConfig extends Model {
 	public void setUpdatedAtNow() {
 		setUpdatedAt(Timestamp.from(Instant.now()));
 	}
+	
+	public void setRefreshedAtNow() {
+		this.refreshedAt = Timestamp.from(Instant.now());
+	}
 
 	public ForeignCollection<StoragePermission> getAccessPermissions() {
 		return this.accessPermissions;
