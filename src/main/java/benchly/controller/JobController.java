@@ -21,6 +21,8 @@ import spark.Route;
 public class JobController extends Controller {
 
 	public static Route show = (request, response) -> {
+		ensureLoggedInUser(request, "Only logged in users may view josb.");
+		
 		Job job = ensureSingleJobByIdFromRoute(request);
 
 		return JsonTransformer.render(job, request);
