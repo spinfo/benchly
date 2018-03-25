@@ -80,13 +80,12 @@ public class SessionController extends Controller {
 
 	private static void doLogin(User user, String password) throws AuthenticationException {
 		// Create a new subject
-		// We could create a shiro session at this point, but our application
-		// uses spark's session, so do not use "subject.getSession(true)"
 		Subject subject = SecurityUtils.getSubject();
+		subject.getSession(true);
 
 		// Create an authentication token
 		UsernamePasswordToken token = new UsernamePasswordToken(user.getEmail(), password);
-		token.setRememberMe(true);
+		token.setRememberMe(false);
 
 		// Authenticate the subject, this throws on failure
 		subject.login(token);
