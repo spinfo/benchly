@@ -42,6 +42,8 @@ public class Benchly {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Benchly.class);
 
+	private static final String SHARED_SECRET_ENV_NAME = "BENCHLY_SHARED_SECRET";
+
 	// a route that can be mapped to all request not handled by other Routes
 	private static Route notFoundRoute = (request, response) -> {
 		String msg = String.format("404 Not found: %s %s", request.requestMethod(), request.pathInfo());
@@ -157,6 +159,14 @@ public class Benchly {
 		exception(Exception.class, ErrorHandlers.internalError);
 
 		LOG.debug("Startup finished.");
+	}
+
+	public static boolean sharedSecretIsAvailable() {
+		return StringUtils.isNotEmpty(readSharedSecret());
+	}
+
+	public static String readSharedSecret() {
+		return System.getenv(SHARED_SECRET_ENV_NAME);
 	}
 
 	public static String getJdbcUrl() {

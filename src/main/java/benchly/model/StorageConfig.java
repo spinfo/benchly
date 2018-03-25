@@ -13,6 +13,8 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import benchly.error.InvalidRequestException;
+
 @DatabaseTable(tableName = "storage_config")
 public class StorageConfig extends Model {
 
@@ -179,12 +181,12 @@ public class StorageConfig extends Model {
 		return this.filesMeta;
 	}
 
-	public StorageCredential generateNewEncryptedCredential() {
+	public StorageCredential generateNewEncryptedCredential() throws InvalidRequestException {
 		this.encryptedCredential = new StorageCredential(this.credential);
 		return this.encryptedCredential;
 	}
 
-	public StorageCredential getEncryptedCredential() {
+	public StorageCredential getEncryptedCredential() throws InvalidRequestException {
 		if (this.encryptedCredential == null) {
 			return this.generateNewEncryptedCredential();
 		} else {

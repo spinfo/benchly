@@ -15,15 +15,17 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.annotations.Expose;
 
-import benchly.database.TestEntrySetup;
+import benchly.Benchly;
+import benchly.error.InvalidRequestException;
 
 /**
- * This handles how a storage credential may be exposed to the outside world. (By encrypting
- * the actual credential alongside a salt that was used to generate an appropriate key for
- * the encryption. The shared secret is only used indirectly to generate the encrypted credential.)
+ * This handles how a storage credential may be exposed to the outside world.
+ * (By encrypting the actual credential alongside a salt that was used to
+ * generate an appropriate key for the encryption. The shared secret is only
+ * used indirectly to generate the encrypted credential.)
  */
 public class StorageCredential {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(StorageCredential.class);
 
 	@Expose(deserialize = false)
@@ -32,15 +34,20 @@ public class StorageCredential {
 	@Expose(deserialize = false)
 	private String salt;
 
-	protected StorageCredential(String plainCredential) { 
-		char[] sharedSecret = TestEntrySetup.THE_SHARED_SECRET.toCharArray();
+	protected StorageCredential(String plainCredential) throws InvalidRequestException {
+		if (!Benchly.sharedSecretIsAvailable()) {
+			throw new InvalidRequestException("This server is not configured to generate encrypted credentials.");
+		}
+		
+		char[] sharedSecret = Benchly.readSharedSecret().toCharArray();
 		int keySize = 256;
 		int iterations = 60000;
-		
+
 		// generate a salt
 		byte[] saltBytes = (new SecureRandomNumberGenerator()).nextBytes().getBytes();
-		
-		// generate a key from from the salt and the shared secret suitable for encryption 
+
+		// generate a key from from the salt and the shared secret suitable for
+		// encryption
 		PBEKeySpec pbe = new PBEKeySpec(sharedSecret, saltBytes, iterations, keySize);
 		Key key;
 		try {
@@ -65,7 +72,5 @@ public class StorageCredential {
 	public String getSalt() {
 		return salt;
 	}
-	
-	
 
 }
