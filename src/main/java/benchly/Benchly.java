@@ -12,6 +12,12 @@ import java.sql.SQLException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.config.IniSecurityManagerFactory;
@@ -45,8 +51,14 @@ public class Benchly {
 	// an executor service that will run periodic tasks for us
 	private static ScheduledExecutorService taskScheduler;
 
+	// the url used for database connection
+	private static String jdbcUrl;
+
 	public static void main(String[] args) {
-		
+
+		// read options from the command line
+		handleCommandLineArgs(args);
+
 		// initialise the scheduler with the periodic tasks
 		taskScheduler = BenchlyScheduler.get();
 
@@ -145,6 +157,39 @@ public class Benchly {
 		exception(Exception.class, ErrorHandlers.internalError);
 
 		LOG.debug("Startup finished.");
+	}
+
+	public static String getJdbcUrl() {
+		return jdbcUrl;
+	}
+
+	private static void handleCommandLineArgs(String[] args) {
+		CommandLineParser parser = new DefaultParser();
+
+		try {
+			CommandLine cl = parser.parse(commandLineOptions(), args);
+			if (cl.hasOption("help")) {
+				(new HelpFormatter()).printHelp("java -jar modulewebserver.jar", commandLineOptions());
+				System.exit(0);
+			} else {
+				if (cl.hasOption("jdbc-url")) {
+					jdbcUrl = cl.getOptionValue("jdbc-url");
+				} else {
+					LOG.error("No jdbc url given on command line. Shutting down.");
+					System.exit(1);
+				}
+			}
+		} catch (ParseException e) {
+			LOG.error("Error while parsing the server configuration: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	private static Options commandLineOptions() {
+		Options options = new Options();
+		options.addOption("d", "jdbc-url", true, "The jdbc connection that should be used (as a jdbc url).");
+		options.addOption("h", "help", false, "Display this help.");
+		return options;
 	}
 
 }

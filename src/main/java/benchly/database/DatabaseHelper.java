@@ -10,6 +10,7 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 
+import benchly.Benchly;
 import benchly.model.AdminMessage;
 import benchly.model.Job;
 import benchly.model.JobMessage;
@@ -54,8 +55,8 @@ class DatabaseHelper {
 
 	static DatabaseHelper getInstance() {
 		if (DatabaseHelper.instance == null) {
-			instance = new DatabaseHelper(
-					"jdbc:mysql://benchly:secret@localhost:3306/benchly?serverTimezone=Europe/Berlin");
+			// the jdbc url is provided by the main program
+			instance = new DatabaseHelper(Benchly.getJdbcUrl());
 		}
 		return instance;
 	}
