@@ -26,7 +26,6 @@ import benchly.controller.SessionController;
 import benchly.controller.StorageController;
 import benchly.controller.UserController;
 import benchly.controller.WorkflowController;
-import benchly.database.TestEntrySetup;
 import benchly.error.InternalServerError;
 import benchly.error.InvalidModelException;
 import benchly.error.InvalidRequestException;
@@ -47,9 +46,6 @@ public class Benchly {
 	private static ScheduledExecutorService taskScheduler;
 
 	public static void main(String[] args) {
-
-		// TODO: Remove
-		TestEntrySetup.setup();
 		
 		// initialise the scheduler with the periodic tasks
 		taskScheduler = BenchlyScheduler.get();

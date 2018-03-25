@@ -9,7 +9,6 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.table.TableUtils;
 
 import benchly.model.AdminMessage;
 import benchly.model.Job;
@@ -47,7 +46,7 @@ class DatabaseHelper {
 	private DatabaseHelper(final String jdbcUrl) {
 		try {
 			connectionSource = new JdbcConnectionSource(jdbcUrl);
-			setupTables(connectionSource);
+			InitialSetup.setupIfNecessary(connectionSource);
 		} catch (SQLException e) {
 			LOG.error("Could not setup db: " + e.getMessage());
 		}
@@ -55,7 +54,8 @@ class DatabaseHelper {
 
 	static DatabaseHelper getInstance() {
 		if (DatabaseHelper.instance == null) {
-			instance = new DatabaseHelper("jdbc:mysql://benchly:secret@localhost:3306/benchly");
+			instance = new DatabaseHelper(
+					"jdbc:mysql://benchly:secret@localhost:3306/benchly?serverTimezone=Europe/Berlin");
 		}
 		return instance;
 	}
@@ -128,31 +128,6 @@ class DatabaseHelper {
 			this.jobMessageDao = this.getMyDaoRuntimeExcept(connectionSource, JobMessage.class);
 		}
 		return this.jobMessageDao;
-	}
-
-	private void setupTables(final ConnectionSource connectionSource) throws SQLException {
-		// TODO: Remove next lines
-		TableUtils.dropTable(connectionSource, JobMessage.class, true);
-		TableUtils.dropTable(connectionSource, AdminMessage.class, true);
-		TableUtils.dropTable(connectionSource, StatusReport.class, true);
-		TableUtils.dropTable(connectionSource, ServerContact.class, true);
-		TableUtils.dropTable(connectionSource, StorageFileMeta.class, true);
-		TableUtils.dropTable(connectionSource, StoragePermission.class, true);
-		TableUtils.dropTable(connectionSource, StorageConfig.class, true);
-		TableUtils.dropTable(connectionSource, Job.class, true);
-		TableUtils.dropTable(connectionSource, Workflow.class, true);
-		TableUtils.dropTable(connectionSource, User.class, true);
-
-		TableUtils.createTableIfNotExists(connectionSource, Workflow.class);
-		TableUtils.createTableIfNotExists(connectionSource, User.class);
-		TableUtils.createTableIfNotExists(connectionSource, Job.class);
-		TableUtils.createTableIfNotExists(connectionSource, StorageConfig.class);
-		TableUtils.createTableIfNotExists(connectionSource, StoragePermission.class);
-		TableUtils.createTableIfNotExists(connectionSource, StorageFileMeta.class);
-		TableUtils.createTableIfNotExists(connectionSource, ServerContact.class);
-		TableUtils.createTableIfNotExists(connectionSource, StatusReport.class);
-		TableUtils.createTableIfNotExists(connectionSource, AdminMessage.class);
-		TableUtils.createTableIfNotExists(connectionSource, JobMessage.class);
 	}
 
 	// convenience method that wraps the SQL Exception on Dao Creation
