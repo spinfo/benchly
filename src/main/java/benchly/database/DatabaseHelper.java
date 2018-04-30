@@ -47,16 +47,23 @@ class DatabaseHelper {
 	private DatabaseHelper(final String jdbcUrl) {
 		try {
 			connectionSource = new JdbcConnectionSource(jdbcUrl);
-			InitialSetup.setupIfNecessary(connectionSource);
+
+			// setup the tables if necessary
+			InitialSetup.setupTables(connectionSource);
 		} catch (SQLException e) {
 			LOG.error("Could not setup db: " + e.getMessage());
 		}
 	}
 
-	static DatabaseHelper getInstance() {
+	public static DatabaseHelper getInstance() {
 		if (DatabaseHelper.instance == null) {
+
 			// the jdbc url is provided by the main program
 			instance = new DatabaseHelper(Benchly.getJdbcUrl());
+
+			// insert the default user if necessary
+			// NOTE: After the instance is set, to allow calls to e.g. UserDao during setup
+			InitialSetup.insertDefaultAdminUser();
 		}
 		return instance;
 	}

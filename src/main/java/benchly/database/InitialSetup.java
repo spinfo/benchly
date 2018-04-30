@@ -2,6 +2,9 @@ package benchly.database;
 
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -18,13 +21,9 @@ import benchly.model.Workflow;
 
 class InitialSetup {
 
-	static void setupIfNecessary(final ConnectionSource connectionSource) throws SQLException {
-		setupTables(connectionSource);
+	private static final Logger LOG = LoggerFactory.getLogger(InitialSetup.class);
 
-		insertDefaultAdminUser();
-	}
-
-	private static void setupTables(final ConnectionSource connectionSource) throws SQLException {
+	protected static void setupTables(final ConnectionSource connectionSource) throws SQLException {
 		TableUtils.createTableIfNotExists(connectionSource, Workflow.class);
 		TableUtils.createTableIfNotExists(connectionSource, User.class);
 		TableUtils.createTableIfNotExists(connectionSource, Job.class);
@@ -37,14 +36,17 @@ class InitialSetup {
 		TableUtils.createTableIfNotExists(connectionSource, JobMessage.class);
 	}
 
-	private static void insertDefaultAdminUser() throws SQLException {
-		long userCount = UserDao.count();
-		if (userCount < 1) {
-			User defaultAdmin = new User("benchly-admin", "mail@example.com", "change-this-password");
-
-			defaultAdmin.setAdmin(true);
-
-			UserDao.create(defaultAdmin);
+	protected static void insertDefaultAdminUser() {
+		try {
+			long userCount = UserDao.count();
+			if (userCount < 1) {
+				User defaultAdmin = new User("benchly-admin", "mail@example.com", "change-this-password");
+				defaultAdmin.setAdmin(true);
+				UserDao.create(defaultAdmin);
+			}
+		} catch (SQLException e) {
+			LOG.error("Unable to check for or enable the default admin user.");
+			e.printStackTrace();
 		}
 	}
 
