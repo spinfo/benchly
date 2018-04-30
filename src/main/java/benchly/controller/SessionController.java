@@ -7,6 +7,7 @@ import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,7 @@ public class SessionController extends Controller {
 
 	public static Route logout = (Request request, Response response) -> {
 		SessionUtil.removeCurrentUser(request);
+		silentlyLogoutUser();
 		return emptyRoute.handle(request, response);
 	};
 
@@ -79,6 +81,8 @@ public class SessionController extends Controller {
 	}
 
 	private static void doLogin(User user, String password) throws AuthenticationException {
+		silentlyLogoutUser();
+
 		// Create a new subject
 		Subject subject = SecurityUtils.getSubject();
 		subject.getSession(true);
@@ -89,6 +93,29 @@ public class SessionController extends Controller {
 
 		// Authenticate the subject, this throws on failure
 		subject.login(token);
+	}
+
+	// tries to logout the user without complaining if anything goes wrong
+	private static void silentlyLogoutUser() {
+		try {
+			// Get the user if one is logged in.
+			Subject subject = SecurityUtils.getSubject();
+			if (subject == null) {
+				LOG.debug("No user to logout.");
+				return;
+			}
+
+			// Log the user out and kill their session if possible.
+			subject.logout();
+			LOG.debug("Logged out user: " + subject);
+			Session session = subject.getSession(false);
+			if (session != null) {
+				LOG.debug("Stopping previous session.");
+				session.stop();
+			}
+		} catch (Exception e) {
+			LOG.warn("Warning, error when silently logging out user: " + e.getMessage());
+		}
 	}
 
 }

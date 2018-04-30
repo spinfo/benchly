@@ -74,6 +74,8 @@ public class UserController extends Controller {
 			target.setAdmin(input.isAdmin());
 		}
 
+		// TODO: This should update the changed user's session if one is present
+
 		// attempt the update
 		long rowCount = UserDao.update(target);
 		ensureRowCountIsOne(rowCount, "update user");
