@@ -7,17 +7,13 @@ import static spark.Spark.get;
 import static spark.Spark.path;
 import static spark.Spark.post;
 import static spark.Spark.put;
+import static spark.Spark.staticFiles;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.config.IniSecurityManagerFactory;
@@ -58,10 +54,20 @@ public class Benchly {
 
 	public static void main(String[] args) {
 
-		// read options from the command line
-		handleCommandLineArgs(args);
+		// read options from the command line, fail if any option is invalid
+		Config config = Config.from(args);
+		List<String> configErrors = config.checkForErrors();
+		if (!configErrors.isEmpty()) {
+			for (String error : configErrors) {
+				LOG.error(error);
+			}
+			System.exit(1);
+		}
 
-		// initialise the scheduler with the periodic tasks
+		// set the database url for later use
+		jdbcUrl = config.getJdbcUrl();
+
+		// initialise the scheduler with periodic tasks
 		taskScheduler = BenchlyScheduler.get();
 
 		// schedule a watcher to regularly check up on the servers connected to us
@@ -78,6 +84,14 @@ public class Benchly {
 		// Initialise the Shiro security manager
 		final SecurityManager securityManager = (new IniSecurityManagerFactory("classpath:shiro.ini")).createInstance();
 		SecurityUtils.setSecurityManager(securityManager);
+
+		// Setup serving the frontend if requested to do so
+		if (config.frontendWasRequested()) {
+			LOG.info("Serving the frontend from: " + config.getFrontendPath());
+
+			// NOTE: Apparently this has to be in front of any other call to spark.Spark.*;
+			staticFiles.externalLocation(config.getFrontendPath());
+		}
 
 		path("/api/v1", () -> {
 
@@ -171,35 +185,6 @@ public class Benchly {
 
 	public static String getJdbcUrl() {
 		return jdbcUrl;
-	}
-
-	private static void handleCommandLineArgs(String[] args) {
-		CommandLineParser parser = new DefaultParser();
-
-		try {
-			CommandLine cl = parser.parse(commandLineOptions(), args);
-			if (cl.hasOption("help")) {
-				(new HelpFormatter()).printHelp("java -jar modulewebserver.jar", commandLineOptions());
-				System.exit(0);
-			} else {
-				if (cl.hasOption("jdbc-url")) {
-					jdbcUrl = cl.getOptionValue("jdbc-url");
-				} else {
-					LOG.error("No jdbc url given on command line. Shutting down.");
-					System.exit(1);
-				}
-			}
-		} catch (ParseException e) {
-			LOG.error("Error while parsing the server configuration: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
-
-	private static Options commandLineOptions() {
-		Options options = new Options();
-		options.addOption("d", "jdbc-url", true, "The jdbc connection that should be used (as a jdbc url).");
-		options.addOption("h", "help", false, "Display this help.");
-		return options;
 	}
 
 }
