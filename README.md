@@ -30,4 +30,6 @@ For example:
 java -jar target/benchly.jar --jdbc-url="jdbc:mysql://user:pass@localhost:3306/
 ```
 
-To allow the encryption of storage locations, the environment variable `BENCHLY_SHARED_SECRET` needs to be set to the same value that the instances use.  
+To allow the encryption of storage locations, the environment variable `BENCHLY_SHARED_SECRET` needs to be set to the same value that the instances use. 
+
+The application can directly serve the frontend using the `--frontend-path="/a/path"` parameter.
