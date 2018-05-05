@@ -4,6 +4,8 @@ A web app that connects to multiple instances of the [Strings & Structures Workb
 
 A [Frontend is available via github](https://github.com/spinfo/benchly-frontend) as well.
 
+[An example for a complete setup is available in the wiki.](https://github.com/spinfo/benchly/wiki/Simple-Setup)
+
 ## Build
 
 For a standard build:
